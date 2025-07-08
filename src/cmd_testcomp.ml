@@ -162,9 +162,13 @@ let notify_finished runs timeout reference_name output_dir =
        @\n\
        Time stats (in seconds):@\n\
        @\n\
+       %a@\n\
+       @\n\
+       Memory stats (in kilobytes):@\n\
+       @\n\
        %a@."
-      reference_name timeout Fpath.pp output_dir Runs.pp_table_results runs
-      Runs.pp_table_statistics runs
+      reference_name timeout Fpath.pp output_dir Runs.pp_table_results
+      runs Runs.pp_table_statistics runs Runs.pp_table_memory runs
   in
   (* Notify on `ZULIP_WEBHOOK` *)
   match Bos.OS.Env.var "ZULIP_WEBHOOK" with
