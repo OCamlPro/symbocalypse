@@ -20,7 +20,8 @@
   ocaml
   dune
   bos
-  extunix
+  (extunix
+   (>= 0.4.4))
   rusage
   smtml
   yaml
