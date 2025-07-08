@@ -1,0 +1,20 @@
+[submodule "btree"]
+	path = btree
+	url = https://github.com/filipeom/wasm-dataset.git
+	shallow = true
+[submodule "klee"]
+	path = klee
+	url = https://github.com/zapashcanon/klee-testcomp.git
+	shallow = true
+[submodule "owi"]
+	path = owi
+	url = https://github.com/ocamlpro/owi.git
+	shallow = true
+[submodule "symbiotic"]
+	path = symbiotic
+	url = https://github.com/filipeom/symbiotic-testcomp.git
+	shallow = true
+[submodule "testcomp/sv-benchmarks"]
+	path = testcomp/sv-benchmarks
+	url = https://gitlab.com/sosy-lab/benchmarking/sv-benchmarks.git
+	shallow = true
