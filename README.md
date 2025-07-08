@@ -1,4 +1,4 @@
-# Benchmarks for Owi
+# Symbocalypse -- Symbolic Execution Benchmarks
 
 ## Installing dependencies
 
