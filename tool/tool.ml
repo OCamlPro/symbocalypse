@@ -36,10 +36,7 @@ let kill_klee_descendants () =
   let _ = Format.ksprintf Sys.command "pkill klee" in
   ()
 
-let wait_pid =
-  let last_utime = ref 0. in
-  let last_stime = ref 0. in
-  fun ~pid ~timeout ~tool ~dst_stderr ->
+let wait_pid ~pid ~timeout ~tool ~dst_stderr =
     let did_timeout = ref false in
     let start_time = Unix.gettimeofday () in
     begin
@@ -54,24 +51,24 @@ let wait_pid =
       with Sigchld -> ()
     end;
     Sys.set_signal Sys.sigchld Signal_default;
-    let waited_pid, status = Unix.waitpid [] (-pid) in
+    let ( waited_pid
+      , status
+      , { ExtUnix.Specific.ru_utime = utime
+        ; ru_stime = stime
+        ; ru_maxrss = maxrss
+        } ) =
+    ExtUnix.Specific.wait4 [] ~-pid
+    in
     (* Because symbiotic is leaking klee processes *)
     kill_klee_descendants ();
     let end_time = Unix.gettimeofday () in
-    let { Rusage.utime; stime; _ } = Rusage.get Rusage.Children in
     assert (waited_pid = pid);
 
-    let utime_diff = utime -. !last_utime in
-    let stime_diff = stime -. !last_stime in
-    last_utime := utime;
-    last_stime := stime;
-    let utime = utime_diff in
-    let stime = stime_diff in
     let clock = end_time -. start_time in
 
     (* Sometimes the clock goes a little bit above the allowed timeout... *)
     let clock = min clock timeout in
-    let rusage = { Report.Rusage.clock; utime; stime } in
+    let rusage = { Report.Rusage.clock; utime; stime; maxrss } in
 
     if !did_timeout || Float.equal clock timeout then
       Report.Run_result.Timeout rusage
