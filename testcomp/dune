@@ -3,7 +3,18 @@
 (executable
  (name testcomp)
  (modules testcomp whitelist)
- (libraries bos fpath report tool yaml unix smtml cohttp cohttp-lwt-unix lwt))
+ (libraries
+  bos
+  fpath
+  report
+  tool
+  yaml
+  unix
+  smtml
+  cohttp
+  cohttp-lwt-unix
+  lwt
+  cmdliner))
 
 (rule
  (deps whitelist.txt)
