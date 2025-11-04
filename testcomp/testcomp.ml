@@ -1,15 +1,37 @@
+open Cmdliner
+
 module Unix = struct
   include Unix
   include Bos.OS.U
 end
 
+let timeout = Arg.(value & pos 0 float 30. & info [] ~docv:"timeout")
+
+let solver_conv = Arg.conv (Smtml.Solver_type.of_string, Smtml.Solver_type.pp)
+
+let solver =
+  let docv = Arg.conv_docv solver_conv in
+  let doc =
+    let pp_bold_solver fmt ty = Fmt.pf fmt "$(b,%a)" Smtml.Solver_type.pp ty in
+    let supported_solvers = Smtml.Solver_dispatcher.supported_solvers in
+    Fmt.str
+      "SMT solver to use. $(i,%s) must be one of the %d available solvers: %a"
+      docv
+      (List.length supported_solvers)
+      (Fmt.list ~sep:Fmt.comma pp_bold_solver)
+      supported_solvers
+  in
+  Arg.(
+    value
+    & opt solver_conv Smtml.Solver_type.Z3_solver
+    & info [ "solver"; "s" ] ~doc ~docv )
+
 let tool =
-  Tool.mk_owi ~concolic:false ~workers:56 ~optimisation_level:3
-    ~solver:Smtml.Solver_type.Z3_solver
+  let open Term.Syntax in
+  let+ solver in
+  Tool.mk_owi ~concolic:false ~workers:56 ~optimisation_level:3 ~solver
 
 let _tool = Tool.mk_klee ()
-
-let reference_name = Tool.to_reference_name tool
 
 let ( let* ) o f = match o with Ok v -> f v | Error _ as e -> e
 
@@ -103,29 +125,13 @@ let files =
   in
   res
 
-let timeout =
-  if Array.length Sys.argv >= 2 then float_of_string Sys.argv.(1) else 30.
-
-let output_dir =
-  let t = Unix.localtime @@ Unix.gettimeofday () in
-  let filename =
-    Format.sprintf "results-testcomp-%s-%d-%02d-%02d_%02dh%02dm%02ds/"
-      reference_name (1900 + t.tm_year) (1 + t.tm_mon) t.tm_mday t.tm_hour
-      t.tm_min t.tm_sec
-  in
-  Fpath.v filename
-
-let (_existed : bool) =
-  Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> ok_or_fail
-
-let output_chan = Fpath.(output_dir / "results") |> Fpath.to_string |> open_out
-
-let fmt = Format.formatter_of_out_channel output_chan
-
-let pp x = Format.fprintf fmt x
-
-let runs =
+let runs tool timeout output_dir =
   let+ files in
+  let output_chan =
+    Fpath.(output_dir / "results") |> Fpath.to_string |> open_out
+  in
+  let fmt = Format.formatter_of_out_channel output_chan in
+  let pp x = Format.fprintf fmt x in
   let files = List.sort Fpath.compare files in
   let len = List.length files in
   let results = ref Report.Runs.empty in
@@ -146,7 +152,7 @@ let runs =
     files;
   !results
 
-let notify_finished runs =
+let notify_finished runs timeout reference_name output_dir =
   let open Cohttp in
   let open Cohttp_lwt_unix in
   let headers =
@@ -224,7 +230,21 @@ let notify_finished runs =
     let status = Response.status result in
     Format.eprintf "Server responded: %s@." (Code.string_of_status status)
 
-let () =
+let run tool timeout =
+  let t = Unix.localtime @@ Unix.gettimeofday () in
+  let reference_name = Tool.to_reference_name tool in
+  let filename =
+    Format.sprintf "results-testcomp-%s-%d-%02d-%02d_%02dh%02dm%02ds/"
+      reference_name (1900 + t.tm_year) (1 + t.tm_mon) t.tm_mday t.tm_hour
+      t.tm_min t.tm_sec
+  in
+  let output_dir = Fpath.v filename in
+  let _ = Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> ok_or_fail in
+  let runs = runs tool timeout output_dir in
   let runs = ok_or_fail runs in
-  notify_finished runs;
+  notify_finished runs timeout reference_name output_dir;
   Report.Gen.full_report runs output_dir reference_name |> ok_or_fail
+
+let cmd = Cmd.v (Cmd.info "testcomp") Term.(const run $ tool $ timeout)
+
+let () = exit (Cmd.eval cmd)
