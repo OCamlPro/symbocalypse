@@ -10,7 +10,7 @@ depends: [
   "ocaml"
   "dune" {>= "3.17"}
   "bos"
-  "extunix"
+  "extunix" {>= "0.4.4"}
   "rusage"
   "smtml"
   "yaml"
