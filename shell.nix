@@ -31,9 +31,13 @@ let
     ];
 
   });
+  owiSubShell = import ./owi/shell.nix { inherit pkgs; };
+
 in
 
 pkgs.mkShell {
+  dontDetectOcamlConflicts = true;
+  inputsFrom = [ owiSubShell ];
   nativeBuildInputs = with pkgs.ocamlPackages; [
     dune_3
     findlib
