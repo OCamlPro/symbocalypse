@@ -29,7 +29,7 @@ let solver =
 let tool =
   let open Term.Syntax in
   let+ solver in
-  Tool.mk_owi ~concolic:false ~workers:56 ~optimisation_level:3 ~solver
+  Tool.mk_owi ~workers:8 ~optimisation_level:3 ~solver
 
 let _tool = Tool.mk_klee ()
 
@@ -81,8 +81,8 @@ let parse_file path =
   let* yml =
     Bos.OS.File.with_ic path
       (fun chan () ->
-        let s = In_channel.input_all chan in
-        Yaml.of_string s )
+         let s = In_channel.input_all chan in
+         Yaml.of_string s )
       ()
   in
   yml
@@ -93,34 +93,34 @@ let is_in_whitelist =
   let tbl = Hashtbl.create 2048 in
   String.split_on_char '\n' Whitelist.v
   |> List.iter (function
-       | "" -> ()
-       | file ->
-         let file = Fpath.(problems_root // v file) in
-         Hashtbl.replace tbl file () );
+      | "" -> ()
+      | file ->
+        let file = Fpath.(problems_root // v file) in
+        Hashtbl.replace tbl file () );
   fun file -> Hashtbl.mem tbl file
 
 let is_valid_problem language properties =
   language = "C"
   && List.exists
-       (function
-         | file, false -> String.equal "unreach-call.prp" (Fpath.filename file)
-         | _ -> false )
-       properties
+    (function
+      | file, false -> String.equal "unreach-call.prp" (Fpath.filename file)
+      | _ -> false )
+    properties
 
 let files =
   let* res =
     Bos.OS.Dir.fold_contents ~dotfiles:false ~elements:`Files ~traverse:`Any
       (fun name acc ->
-        let* acc in
-        if not (Fpath.has_ext ".yml" name && is_in_whitelist name) then Ok acc
-        else
-          let* yml = parse_file name in
-          let+ input_file, properties, language =
-            let dir = fst @@ Fpath.split_base name in
-            problem yml dir
-          in
-          if is_valid_problem language properties then input_file :: acc
-          else acc )
+         let* acc in
+         if not (Fpath.has_ext ".yml" name && is_in_whitelist name) then Ok acc
+         else
+           let* yml = parse_file name in
+           let+ input_file, properties, language =
+             let dir = fst @@ Fpath.split_base name in
+             problem yml dir
+           in
+           if is_valid_problem language properties then input_file :: acc
+           else acc )
       (Ok []) problems_root
   in
   res
@@ -138,17 +138,17 @@ let runs tool timeout output_dir =
   let limit = 10_000 in
   List.iteri
     (fun i file ->
-      let i = succ i in
-      if i < limit + 1 then begin
-        pp "%a@\n  @[<v>" (Report.Run.pp_header (min len limit)) (i, file);
-        let result =
-          Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
-          |> ok_or_fail
-        in
-        let result = { Report.Run.i; file; res = result } in
-        results := Report.Runs.add result !results;
-        pp "%a@]@\n%!" Report.Runs.pp_quick_results !results
-      end )
+       let i = succ i in
+       if i < limit + 1 then begin
+         pp "%a@\n  @[<v>" (Report.Run.pp_header (min len limit)) (i, file);
+         let result =
+           Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
+           |> ok_or_fail
+         in
+         let result = { Report.Run.i; file; res = result } in
+         results := Report.Runs.add result !results;
+         pp "%a@]@\n%!" Report.Runs.pp_quick_results !results
+       end )
     files;
   !results
 

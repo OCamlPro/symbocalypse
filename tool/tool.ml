@@ -1,7 +1,6 @@
 type t =
   | Owi of
-      { concolic : bool
-      ; optimisation_level : int
+      { optimisation_level : int
       ; workers : int
       ; solver : Smtml.Solver_type.t
       }
@@ -16,15 +15,14 @@ let to_short_name = function
   | Symbiotic -> "symbiotic"
 
 let to_reference_name = function
-  | Owi { concolic; workers; optimisation_level; solver } ->
-    Format.asprintf "owi_w%d_O%d_s%a%s" workers optimisation_level
+  | Owi { workers; optimisation_level; solver } ->
+    Format.asprintf "owi_w%d_O%d_s%a" workers optimisation_level
       Smtml.Solver_type.pp solver
-      (if concolic then "_concolic" else "")
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
 
-let mk_owi ~concolic ~workers ~optimisation_level ~solver =
-  Owi { concolic; workers; optimisation_level; solver }
+let mk_owi ~workers ~optimisation_level ~solver =
+  Owi { workers; optimisation_level; solver }
 
 let mk_klee () = Klee
 
@@ -78,47 +76,47 @@ let wait_pid =
     else
       match status with
       | WEXITED code -> begin
-        match tool with
-        | Owi _ ->
-          if code = 0 then Nothing rusage
-          else if code = 13 then Reached rusage
-          else Other (rusage, code)
-        | Klee ->
-          if code = 0 then begin
-            let chan = open_in (Fpath.to_string dst_stderr) in
-            let has_found_error = ref false in
-            begin
-              try
-                while true do
-                  let line = input_line chan in
-                  match
-                    String.split_on_char ' ' line
-                    |> List.filter (fun s -> s <> "")
-                  with
-                  | [ "KLEE:"; "ERROR:"; _location; "ASSERTION"; "FAIL:"; "0" ]
-                    ->
-                    has_found_error := true;
-                    raise Exit
-                  | _line -> ()
-                done
-              with End_of_file | Exit -> ()
-            end;
-            close_in chan;
-            if !has_found_error then Reached rusage else Nothing rusage
-          end
-          else Other (rusage, code)
-        | Symbiotic ->
-          if code = 0 then begin
-            match Bos.OS.File.read dst_stderr with
-            | Error (`Msg err) -> failwith err
-            | Ok data -> (
-              let error = Astring.String.find_sub ~sub:"Found ERROR!" data in
-              match error with
-              | Some _ -> Reached rusage
-              | None -> Nothing rusage )
-          end
-          else Other (rusage, code)
-      end
+          match tool with
+          | Owi _ ->
+            if code = 0 then Nothing rusage
+            else if code = 13 then Reached rusage
+            else Other (rusage, code)
+          | Klee ->
+            if code = 0 then begin
+              let chan = open_in (Fpath.to_string dst_stderr) in
+              let has_found_error = ref false in
+              begin
+                try
+                  while true do
+                    let line = input_line chan in
+                    match
+                      String.split_on_char ' ' line
+                      |> List.filter (fun s -> s <> "")
+                    with
+                    | [ "KLEE:"; "ERROR:"; _location; "ASSERTION"; "FAIL:"; "0" ]
+                      ->
+                      has_found_error := true;
+                      raise Exit
+                    | _line -> ()
+                  done
+                with End_of_file | Exit -> ()
+              end;
+              close_in chan;
+              if !has_found_error then Reached rusage else Nothing rusage
+            end
+            else Other (rusage, code)
+          | Symbiotic ->
+            if code = 0 then begin
+              match Bos.OS.File.read dst_stderr with
+              | Error (`Msg err) -> failwith err
+              | Ok data -> (
+                  let error = Astring.String.find_sub ~sub:"Found ERROR!" data in
+                  match error with
+                  | Some _ -> Reached rusage
+                  | None -> Nothing rusage )
+            end
+            else Other (rusage, code)
+        end
       | WSIGNALED n -> Signaled (rusage, n)
       | WSTOPPED n -> Stopped (rusage, n)
 
@@ -128,10 +126,9 @@ let execvp ~output_dir tool file timeout =
   let timeout = string_of_int timeout in
   let bin, args =
     match tool with
-    | Owi { workers; optimisation_level; concolic; solver } ->
+    | Owi { workers; optimisation_level; solver } ->
       ( "owi"
-      , [ "owi"; "c" ]
-        @ (if concolic then [ "--concolic" ] else [])
+      , [ "_build/default/owi/src/bin/owi.exe"; "c" ]
         @ [ "--unsafe"
           ; "--fail-on-assertion-only"
           ; Format.sprintf "-O%d" optimisation_level
