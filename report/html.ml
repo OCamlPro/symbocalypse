@@ -17,10 +17,10 @@ let make runs output_dir reference_name =
           [ ul
               (Runs.map
                  (fun run ->
-                   li
-                     [ Format.kasprintf txt "run %d: " run.Run.i
-                     ; code [ Format.kasprintf txt "%a" Fpath.pp run.file ]
-                     ] )
+                    li
+                      [ Format.kasprintf txt "run %d: " run.Run.i
+                      ; code [ Format.kasprintf txt "%a" Fpath.pp run.file ]
+                      ] )
                  runs )
           ]
       ]
@@ -58,27 +58,27 @@ let make runs output_dir reference_name =
       ; h2 [ txt "Statistics" ]
       ; div
           [ p
-              [ Format.ksprintf txt "Sum of clock times (reached): %f"
+              [ Format.ksprintf txt "Sum of clock times (reached): %.2G"
                   (Runs.sum_clock reached)
               ]
           ; p
-              [ Format.ksprintf txt "Mean of clock times (reached): %f"
+              [ Format.ksprintf txt "Mean of clock times (reached): %.2G"
                   (Runs.mean_clock reached)
               ]
           ; p
-              [ Format.ksprintf txt "Sum of utime times (reached): %f"
+              [ Format.ksprintf txt "Sum of utime times (reached): %.2G"
                   (Runs.sum_utime reached)
               ]
           ; p
-              [ Format.ksprintf txt "Mean of utime times (reached): %f"
+              [ Format.ksprintf txt "Mean of utime times (reached): %.2G"
                   (Runs.mean_utime reached)
               ]
           ; p
-              [ Format.ksprintf txt "Sum of stime times (reached): %f"
+              [ Format.ksprintf txt "Sum of stime times (reached): %.2G"
                   (Runs.sum_stime reached)
               ]
           ; p
-              [ Format.ksprintf txt "Mean of stime times (reached): %f"
+              [ Format.ksprintf txt "Mean of stime times (reached): %.2G"
                   (Runs.mean_stime reached)
               ]
           ]

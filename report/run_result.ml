@@ -18,14 +18,14 @@ let is_other = function Other _ -> true | _ -> false
 
 let pp fmt = function
   | Timeout t ->
-    Format.fprintf fmt "Timeout in %g %g %g" t.clock t.utime t.stime
+    Format.fprintf fmt "Timeout in %.2G %.2G %.2G" t.clock t.utime t.stime
   | Nothing t ->
-    Format.fprintf fmt "Nothing in %g %g %g" t.clock t.utime t.stime
+    Format.fprintf fmt "Nothing in %.2G %.2G %.2G" t.clock t.utime t.stime
   | Reached t ->
-    Format.fprintf fmt "Reached in %g %g %g" t.clock t.utime t.stime
+    Format.fprintf fmt "Reached in %.2G %.2G %.2G" t.clock t.utime t.stime
   | Other (t, code) ->
-    Format.fprintf fmt "Other %i in %g %g %g" code t.clock t.utime t.stime
+    Format.fprintf fmt "Other %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
   | Signaled (t, code) ->
-    Format.fprintf fmt "Signaled %i in %g %g %g" code t.clock t.utime t.stime
+    Format.fprintf fmt "Signaled %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
   | Stopped (t, code) ->
-    Format.fprintf fmt "Stopped %i in %g %g %g" code t.clock t.utime t.stime
+    Format.fprintf fmt "Stopped %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
