@@ -33,6 +33,7 @@
   logs.cli
   logs.fmt
   lwt
+  processor
   rusage
   smtml
   tyxml

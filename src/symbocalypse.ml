@@ -34,6 +34,37 @@ let log_level =
 
 (* Common terms *)
 
+let owi =
+  let+ solver =
+    let docv = Arg.conv_docv solver_conv in
+    let doc =
+      let pp_bold_solver fmt ty =
+        Fmt.pf fmt "$(b,%a)" Smtml.Solver_type.pp ty
+      in
+      let supported_solvers = Smtml.Solver_dispatcher.supported_solvers in
+      Fmt.str
+        "SMT solver to use. $(i,%s) must be one of the %d available solvers: %a"
+        docv
+        (List.length supported_solvers)
+        (Fmt.list ~sep:Fmt.comma pp_bold_solver)
+        supported_solvers
+    in
+    Arg.(
+      value
+      & opt solver_conv Smtml.Solver_type.Z3_solver
+      & info [ "solver"; "s" ] ~doc ~docv )
+  and+ workers =
+    let doc =
+      "number of workers for symbolic execution. Defaults to the number of \
+       physical cores."
+    in
+    Arg.(
+      value
+      & opt int Processor.Query.core_count
+      & info [ "workers"; "w" ] ~doc ~absent:"n" )
+  in
+  Tool.mk_owi ~workers ~optimisation_level:3 ~solver
+
 let result_file =
   let doc = "result file" in
   Arg.(
@@ -59,29 +90,7 @@ let setup_log =
   Logs.set_level log_level;
   Logs.set_reporter (Logs.format_reporter ())
 
-let solver =
-  let docv = Arg.conv_docv solver_conv in
-  let doc =
-    let pp_bold_solver fmt ty = Fmt.pf fmt "$(b,%a)" Smtml.Solver_type.pp ty in
-    let supported_solvers = Smtml.Solver_dispatcher.supported_solvers in
-    Fmt.str
-      "SMT solver to use. $(i,%s) must be one of the %d available solvers: %a"
-      docv
-      (List.length supported_solvers)
-      (Fmt.list ~sep:Fmt.comma pp_bold_solver)
-      supported_solvers
-  in
-  Arg.(
-    value
-    & opt solver_conv Smtml.Solver_type.Z3_solver
-    & info [ "solver"; "s" ] ~doc ~docv )
-
 let timeout = Arg.(value & pos 0 float 30. & info [] ~docv:"timeout")
-
-let tool =
-  let+ solver in
-  (* let _tool = Tool.mk_klee () *)
-  Tool.mk_owi ~workers:8 ~optimisation_level:3 ~solver
 
 (* symbocalypse diff *)
 let diff_info =
@@ -105,6 +114,42 @@ let report_cmd =
   and+ result_file in
   Cmd_report.run result_file
 
+(* symbocalypse testcomp klee *)
+let testcomp_klee_info =
+  let doc = "KLEE engine" in
+  let man = shared_man in
+  Cmd.info "klee" ~version ~doc ~sdocs ~man
+
+let testcomp_klee_cmd =
+  let+ () = setup_log
+  and+ timeout in
+  let klee = Tool.mk_klee () in
+  Cmd_testcomp.run klee timeout
+
+(* symbocalypse testcomp owi *)
+let testcomp_owi_info =
+  let doc = "Owi engine" in
+  let man = shared_man in
+  Cmd.info "owi" ~version ~doc ~sdocs ~man
+
+let testcomp_owi_cmd =
+  let+ () = setup_log
+  and+ timeout
+  and+ owi in
+  Cmd_testcomp.run owi timeout
+
+(* symbocalypse testcomp symbiotic *)
+let testcomp_symbiotic_info =
+  let doc = "Symbiotic engine" in
+  let man = shared_man in
+  Cmd.info "symbiotic" ~version ~doc ~sdocs ~man
+
+let testcomp_symbiotic_cmd =
+  let+ () = setup_log
+  and+ timeout in
+  let symbiotic = Tool.mk_symbiotic () in
+  Cmd_testcomp.run symbiotic timeout
+
 (* symbocalypse testcomp *)
 let testcomp_info =
   let doc = "Run Test-Comp" in
@@ -112,10 +157,11 @@ let testcomp_info =
   Cmd.info "testcomp" ~version ~doc ~sdocs ~man
 
 let testcomp_cmd =
-  let+ () = setup_log
-  and+ timeout
-  and+ tool in
-  Cmd_testcomp.run tool timeout
+  Cmd.group testcomp_info
+    [ Cmd.v testcomp_klee_info testcomp_klee_cmd
+    ; Cmd.v testcomp_owi_info testcomp_owi_cmd
+    ; Cmd.v testcomp_symbiotic_info testcomp_symbiotic_cmd
+    ]
 
 (* symbocalypse version *)
 let version_info =
@@ -141,7 +187,7 @@ let cli =
   Cmd.group info ~default
     [ Cmd.v diff_info diff_cmd
     ; Cmd.v report_info report_cmd
-    ; Cmd.v testcomp_info testcomp_cmd
+    ; testcomp_cmd
     ; Cmd.v version_info version_cmd
     ]
 

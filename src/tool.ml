@@ -31,7 +31,7 @@ let mk_symbiotic () = Symbiotic
 exception Sigchld
 
 let kill_klee_descendants () =
-  let _ = Format.ksprintf Sys.command "pkill klee" in
+  let _ : int = Format.ksprintf Sys.command "pkill klee" in
   ()
 
 let wait_pid =
@@ -136,7 +136,7 @@ let execvp ~output_dir tool file timeout =
           ; file
           ] )
     | Klee ->
-      let path_to_klee = "klee/bin/klee" in
+      let path_to_klee = "tools/klee/bin/klee" in
       ( path_to_klee
       , [ path_to_klee
         ; "--error-only"
@@ -147,7 +147,7 @@ let execvp ~output_dir tool file timeout =
         ; file
         ] )
     | Symbiotic ->
-      let path_to_symbiotic = "symbiotic/bin/symbiotic" in
+      let path_to_symbiotic = "tools/symbiotic/bin/symbiotic" in
       ( path_to_symbiotic
       , [ path_to_symbiotic
         ; "--test-comp"

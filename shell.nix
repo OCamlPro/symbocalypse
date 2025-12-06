@@ -45,11 +45,13 @@ pkgs.mkShell {
     ocaml
     ocamlformat
     ocp-browser
+    pkgs.python3
   ];
   propagatedBuildInputs = with pkgs.ocamlPackages; [
     cmdliner
     cohttp-lwt-unix
     extunix
+    processor
     rusage
     smtml
     tyxml

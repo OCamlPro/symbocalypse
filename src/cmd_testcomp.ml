@@ -110,6 +110,8 @@ let runs tool timeout output_dir =
     (fun i file ->
       let i = succ i in
       if i < limit + 1 then begin
+        Logs.app (fun m -> m "%a" (Run.pp_header (min len limit)) (i, file));
+        Logs.app (fun m -> m "  @[<v>");
         pp "%a@\n  @[<v>" (Run.pp_header (min len limit)) (i, file);
         let result =
           Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
@@ -117,6 +119,7 @@ let runs tool timeout output_dir =
         in
         let result = { Run.i; file; res = result } in
         results := Runs.add result !results;
+        Logs.app (fun m -> m "%a@]" Runs.pp_quick_results !results);
         pp "%a@]@\n%!" Runs.pp_quick_results !results
       end )
     files;
