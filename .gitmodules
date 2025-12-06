@@ -1,6 +1,6 @@
 [submodule "tools/klee"]
 	path = tools/klee
-	url = https://github.com/zapashcanon/klee-testcomp.git
+	url = https://github.com/redianthus/klee-testcomp.git
 	shallow = true
 [submodule "tools/owi"]
 	path = tools/owi
