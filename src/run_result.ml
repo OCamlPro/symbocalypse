@@ -1,10 +1,10 @@
 type t =
-  | Nothing of Rusage.t
-  | Signaled of Rusage.t * int
-  | Stopped of Rusage.t * int
-  | Reached of Rusage.t
-  | Timeout of Rusage.t
-  | Other of Rusage.t * int
+  | Nothing of Timings.t
+  | Signaled of Timings.t * int
+  | Stopped of Timings.t * int
+  | Reached of Timings.t
+  | Timeout of Timings.t
+  | Other of Timings.t * int
 
 let is_nothing = function Nothing _ -> true | _ -> false
 
@@ -26,6 +26,8 @@ let pp fmt = function
   | Other (t, code) ->
     Format.fprintf fmt "Other %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
   | Signaled (t, code) ->
-    Format.fprintf fmt "Signaled %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
+    Format.fprintf fmt "Signaled %i in %.2G %.2G %.2G" code t.clock t.utime
+      t.stime
   | Stopped (t, code) ->
-    Format.fprintf fmt "Stopped %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
+    Format.fprintf fmt "Stopped %i in %.2G %.2G %.2G" code t.clock t.utime
+      t.stime

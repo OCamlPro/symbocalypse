@@ -29,7 +29,7 @@ let count_other runs =
 let count_killed runs =
   List.fold_left
     (fun count r ->
-       match r.Run.res with Signaled _ | Stopped _ -> succ count | _ -> count )
+      match r.Run.res with Signaled _ | Stopped _ -> succ count | _ -> count )
     0 runs
 
 let keep_nothing = List.filter Run.is_nothing
@@ -50,15 +50,15 @@ let min_clock runs =
   | hd :: runs ->
     List.fold_left
       (fun current_min r ->
-         let clock = Run.clock r in
-         min clock current_min )
+        let clock = Run.clock r in
+        min clock current_min )
       (Run.clock hd) runs
 
 let max_clock runs =
   List.fold_left
     (fun current_max r ->
-       let clock = Run.clock r in
-       max clock current_max )
+      let clock = Run.clock r in
+      max clock current_max )
     0. runs
 
 let median_clock runs =
@@ -83,11 +83,11 @@ let mean_stime runs = sum_stime runs /. (count_all runs |> float_of_int)
 
 let to_distribution ~max_time runs =
   List.init max_time (fun i ->
-      List.fold_left
-        (fun count r ->
-           let clock = Run.clock r |> int_of_float in
-           if clock = i then count +. 1. else count )
-        0. runs )
+    List.fold_left
+      (fun count r ->
+        let clock = Run.clock r |> int_of_float in
+        if clock = i then count +. 1. else count )
+      0. runs )
 
 let pp_quick_results fmt results =
   let nothing = ref 0 in
@@ -97,12 +97,12 @@ let pp_quick_results fmt results =
   let other = ref 0 in
   List.iter
     (fun result ->
-       match result.Run.res with
-       | Nothing _ -> incr nothing
-       | Reached _ -> incr reached
-       | Timeout _ -> incr timeout
-       | Signaled _ | Stopped _ -> incr killed
-       | Other _ -> incr other )
+      match result.Run.res with
+      | Nothing _ -> incr nothing
+      | Reached _ -> incr reached
+      | Timeout _ -> incr timeout
+      | Signaled _ | Stopped _ -> incr killed
+      | Other _ -> incr other )
     results;
   Format.fprintf fmt
     "Nothing: %6i    Reached: %6i    Timeout: %6i    Other: %6i    Killed: %6i"

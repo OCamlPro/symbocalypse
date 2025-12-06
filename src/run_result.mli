@@ -1,10 +1,10 @@
 type t =
-  | Nothing of Rusage.t
-  | Signaled of Rusage.t * int
-  | Stopped of Rusage.t * int
-  | Reached of Rusage.t
-  | Timeout of Rusage.t
-  | Other of Rusage.t * int
+  | Nothing of Timings.t
+  | Signaled of Timings.t * int
+  | Stopped of Timings.t * int
+  | Reached of Timings.t
+  | Timeout of Timings.t
+  | Other of Timings.t * int
 
 val is_nothing : t -> bool
 

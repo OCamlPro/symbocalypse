@@ -1,37 +1,7 @@
-open Cmdliner
-
 module Unix = struct
   include Unix
   include Bos.OS.U
 end
-
-let timeout = Arg.(value & pos 0 float 30. & info [] ~docv:"timeout")
-
-let solver_conv = Arg.conv (Smtml.Solver_type.of_string, Smtml.Solver_type.pp)
-
-let solver =
-  let docv = Arg.conv_docv solver_conv in
-  let doc =
-    let pp_bold_solver fmt ty = Fmt.pf fmt "$(b,%a)" Smtml.Solver_type.pp ty in
-    let supported_solvers = Smtml.Solver_dispatcher.supported_solvers in
-    Fmt.str
-      "SMT solver to use. $(i,%s) must be one of the %d available solvers: %a"
-      docv
-      (List.length supported_solvers)
-      (Fmt.list ~sep:Fmt.comma pp_bold_solver)
-      supported_solvers
-  in
-  Arg.(
-    value
-    & opt solver_conv Smtml.Solver_type.Z3_solver
-    & info [ "solver"; "s" ] ~doc ~docv )
-
-let tool =
-  let open Term.Syntax in
-  let+ solver in
-  Tool.mk_owi ~workers:8 ~optimisation_level:3 ~solver
-
-let _tool = Tool.mk_klee ()
 
 let ( let* ) o f = match o with Ok v -> f v | Error _ as e -> e
 
@@ -81,52 +51,52 @@ let parse_file path =
   let* yml =
     Bos.OS.File.with_ic path
       (fun chan () ->
-         let s = In_channel.input_all chan in
-         Yaml.of_string s )
+        let s = In_channel.input_all chan in
+        Yaml.of_string s )
       ()
   in
   yml
 
-let problems_root = Fpath.v "testcomp/sv-benchmarks/c/"
+let problems_root = Fpath.v "benchs/sv-benchmarks/c/"
 
 let is_in_whitelist =
   let tbl = Hashtbl.create 2048 in
-  String.split_on_char '\n' Whitelist.v
+  String.split_on_char '\n' Testcomp_whitelist.v
   |> List.iter (function
-      | "" -> ()
-      | file ->
-        let file = Fpath.(problems_root // v file) in
-        Hashtbl.replace tbl file () );
+    | "" -> ()
+    | file ->
+      let file = Fpath.(problems_root // v file) in
+      Hashtbl.replace tbl file () );
   fun file -> Hashtbl.mem tbl file
 
 let is_valid_problem language properties =
   language = "C"
   && List.exists
-    (function
-      | file, false -> String.equal "unreach-call.prp" (Fpath.filename file)
-      | _ -> false )
-    properties
+       (function
+         | file, false -> String.equal "unreach-call.prp" (Fpath.filename file)
+         | _ -> false )
+       properties
 
-let files =
+let files () =
   let* res =
     Bos.OS.Dir.fold_contents ~dotfiles:false ~elements:`Files ~traverse:`Any
       (fun name acc ->
-         let* acc in
-         if not (Fpath.has_ext ".yml" name && is_in_whitelist name) then Ok acc
-         else
-           let* yml = parse_file name in
-           let+ input_file, properties, language =
-             let dir = fst @@ Fpath.split_base name in
-             problem yml dir
-           in
-           if is_valid_problem language properties then input_file :: acc
-           else acc )
+        let* acc in
+        if not (Fpath.has_ext ".yml" name && is_in_whitelist name) then Ok acc
+        else
+          let* yml = parse_file name in
+          let+ input_file, properties, language =
+            let dir = fst @@ Fpath.split_base name in
+            problem yml dir
+          in
+          if is_valid_problem language properties then input_file :: acc
+          else acc )
       (Ok []) problems_root
   in
   res
 
 let runs tool timeout output_dir =
-  let+ files in
+  let+ files = files () in
   let output_chan =
     Fpath.(output_dir / "results") |> Fpath.to_string |> open_out
   in
@@ -134,21 +104,21 @@ let runs tool timeout output_dir =
   let pp x = Format.fprintf fmt x in
   let files = List.sort Fpath.compare files in
   let len = List.length files in
-  let results = ref Report.Runs.empty in
+  let results = ref Runs.empty in
   let limit = 10_000 in
   List.iteri
     (fun i file ->
-       let i = succ i in
-       if i < limit + 1 then begin
-         pp "%a@\n  @[<v>" (Report.Run.pp_header (min len limit)) (i, file);
-         let result =
-           Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
-           |> ok_or_fail
-         in
-         let result = { Report.Run.i; file; res = result } in
-         results := Report.Runs.add result !results;
-         pp "%a@]@\n%!" Report.Runs.pp_quick_results !results
-       end )
+      let i = succ i in
+      if i < limit + 1 then begin
+        pp "%a@\n  @[<v>" (Run.pp_header (min len limit)) (i, file);
+        let result =
+          Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
+          |> ok_or_fail
+        in
+        let result = { Run.i; file; res = result } in
+        results := Runs.add result !results;
+        pp "%a@]@\n%!" Runs.pp_quick_results !results
+      end )
     files;
   !results
 
@@ -191,8 +161,8 @@ let notify_finished runs timeout reference_name output_dir =
        Time stats (in seconds):@\n\
        @\n\
        %a@."
-      reference_name timeout Fpath.pp output_dir Report.Runs.pp_table_results
-      runs Report.Runs.pp_table_statistics runs
+      reference_name timeout Fpath.pp output_dir Runs.pp_table_results runs
+      Runs.pp_table_statistics runs
   in
   (* Notify on `ZULIP_WEBHOOK` *)
   match Bos.OS.Env.var "ZULIP_WEBHOOK" with
@@ -243,8 +213,4 @@ let run tool timeout =
   let runs = runs tool timeout output_dir in
   let runs = ok_or_fail runs in
   notify_finished runs timeout reference_name output_dir;
-  Report.Gen.full_report runs output_dir reference_name |> ok_or_fail
-
-let cmd = Cmd.v (Cmd.info "testcomp") Term.(const run $ tool $ timeout)
-
-let () = exit (Cmd.eval cmd)
+  Gen.full_report runs output_dir reference_name

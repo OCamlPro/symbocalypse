@@ -17,10 +17,10 @@ let make runs output_dir reference_name =
           [ ul
               (Runs.map
                  (fun run ->
-                    li
-                      [ Format.kasprintf txt "run %d: " run.Run.i
-                      ; code [ Format.kasprintf txt "%a" Fpath.pp run.file ]
-                      ] )
+                   li
+                     [ Format.kasprintf txt "run %d: " run.Run.i
+                     ; code [ Format.kasprintf txt "%a" Fpath.pp run.file ]
+                     ] )
                  runs )
           ]
       ]

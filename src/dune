@@ -1,0 +1,50 @@
+(executable
+ (public_name symbocalypse)
+ (modules
+  cmd_diff
+  cmd_report
+  cmd_testcomp
+  cmd_version
+  color
+  gen
+  html
+  parse
+  run
+  run_result
+  runs
+  symbocalypse
+  testcomp_whitelist
+  time_distribution
+  timings
+  tool)
+ (libraries
+  bos
+  cmdliner
+  cohttp
+  cohttp-lwt-unix
+  dune-build-info
+  extunix
+  fmt
+  fmt.cli
+  fmt.tty
+  fpath
+  gnuplot
+  logs
+  logs.cli
+  logs.fmt
+  lwt
+  rusage
+  smtml
+  tyxml
+  unix
+  yaml))
+
+(rule
+ (deps testcomp_whitelist.txt)
+ (action
+  (with-stdout-to
+   testcomp_whitelist.ml
+   (progn
+    (echo "let v = {|")
+    (cat testcomp_whitelist.txt)
+    (echo "|}")))))

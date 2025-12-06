@@ -31,7 +31,7 @@ let
     ];
 
   });
-  owiSubShell = import ./owi/shell.nix { inherit pkgs; };
+  owiSubShell = import ./tools/owi/shell.nix { inherit pkgs; };
 
 in
 
@@ -47,6 +47,7 @@ pkgs.mkShell {
     ocp-browser
   ];
   propagatedBuildInputs = with pkgs.ocamlPackages; [
+    cmdliner
     cohttp-lwt-unix
     extunix
     rusage

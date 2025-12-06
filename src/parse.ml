@@ -38,7 +38,7 @@ let from_file file =
     let* clock = parse_float t1 in
     let* utime = parse_float t2 in
     let+ stime = parse_float t3 in
-    { Rusage.clock; utime; stime }
+    { Timings.clock; utime; stime }
   in
 
   let parse_int s =

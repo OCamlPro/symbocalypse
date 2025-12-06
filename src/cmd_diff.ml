@@ -1,100 +1,90 @@
-let () =
-  if Array.length Sys.argv < 3 then
-    Format.ksprintf failwith "usage: %s <FILE> <FILE>" Sys.argv.(0)
+let run file1 file2 =
+  let report1 = Parse.from_file file1 in
 
-let file1 = Fpath.v Sys.argv.(1)
+  let report2 = Parse.from_file file2 in
 
-let file2 = Fpath.v Sys.argv.(2)
+  let count_all1 = Runs.count_all report1 in
 
-open Report
+  let count_all2 = Runs.count_all report2 in
 
-let report1 = Parse.from_file file1
+  let count_nothing1 = Runs.count_nothing report1 in
 
-let report2 = Parse.from_file file2
+  let count_nothing2 = Runs.count_nothing report2 in
 
-let count_all1 = Runs.count_all report1
+  let count_reached1 = Runs.count_reached report1 in
 
-let count_all2 = Runs.count_all report2
+  let count_reached2 = Runs.count_reached report2 in
 
-let count_nothing1 = Runs.count_nothing report1
+  let count_timeout1 = Runs.count_timeout report1 in
 
-let count_nothing2 = Runs.count_nothing report2
+  let count_timeout2 = Runs.count_timeout report2 in
 
-let count_reached1 = Runs.count_reached report1
+  let count_other1 = Runs.count_other report1 in
 
-let count_reached2 = Runs.count_reached report2
+  let count_other2 = Runs.count_other report2 in
 
-let count_timeout1 = Runs.count_timeout report1
+  let count_killed1 = Runs.count_killed report1 in
 
-let count_timeout2 = Runs.count_timeout report2
+  let count_killed2 = Runs.count_killed report2 in
 
-let count_other1 = Runs.count_other report1
+  let reached1 = Runs.keep_reached report1 in
 
-let count_other2 = Runs.count_other report2
+  let reached2 = Runs.keep_reached report2 in
 
-let count_killed1 = Runs.count_killed report1
+  let reached_files1 = Runs.files reached1 in
 
-let count_killed2 = Runs.count_killed report2
+  let reached_files2 = Runs.files reached2 in
 
-let reached1 = Runs.keep_reached report1
+  let reached_tbl1 =
+    let tbl = Hashtbl.create 512 in
+    List.iter (fun file -> Hashtbl.replace tbl file ()) reached_files1;
+    tbl
+  in
+  let reached_tbl2 =
+    let tbl = Hashtbl.create 512 in
+    List.iter (fun file -> Hashtbl.replace tbl file ()) reached_files2;
+    tbl
+  in
+  let reached_common =
+    let tbl = Hashtbl.create 512 in
+    List.iter
+      (fun file ->
+        if Hashtbl.mem reached_tbl2 file then Hashtbl.replace tbl file () )
+      reached_files1;
+    tbl
+  in
+  let count_common = Hashtbl.length reached_common in
+  let reached_common_1 =
+    Runs.keep_if (fun run -> Hashtbl.mem reached_common run.Run.file) reached1
+  in
+  let reached_common_2 =
+    Runs.keep_if (fun run -> Hashtbl.mem reached_common run.Run.file) reached2
+  in
+  let reached_only_1 =
+    Runs.keep_if
+      (fun run -> not @@ Hashtbl.mem reached_common run.Run.file)
+      reached1
+  in
+  let reached_only_2 =
+    Runs.keep_if
+      (fun run -> not @@ Hashtbl.mem reached_common run.Run.file)
+      reached2
+  in
+  let report1_found_by_2_not_by_1 =
+    Runs.keep_if
+      (fun run ->
+        let f = run.Run.file in
+        Hashtbl.mem reached_tbl2 f && (not @@ Hashtbl.mem reached_tbl1 f) )
+      report1
+  in
+  let report2_found_by_1_not_by_2 =
+    Runs.keep_if
+      (fun run ->
+        let f = run.Run.file in
+        Hashtbl.mem reached_tbl1 f && (not @@ Hashtbl.mem reached_tbl2 f) )
+      report2
+  in
 
-let reached2 = Runs.keep_reached report2
-
-let reached_files1 = Runs.files reached1
-
-let reached_files2 = Runs.files reached2
-
-let reached_tbl1 =
-  let tbl = Hashtbl.create 512 in
-  List.iter (fun file -> Hashtbl.replace tbl file ()) reached_files1;
-  tbl
-
-let reached_tbl2 =
-  let tbl = Hashtbl.create 512 in
-  List.iter (fun file -> Hashtbl.replace tbl file ()) reached_files2;
-  tbl
-
-let reached_common =
-  let tbl = Hashtbl.create 512 in
-  List.iter
-    (fun file ->
-      if Hashtbl.mem reached_tbl2 file then Hashtbl.replace tbl file () )
-    reached_files1;
-  tbl
-
-let count_common = Hashtbl.length reached_common
-
-let reached_common_1 =
-  Runs.keep_if (fun run -> Hashtbl.mem reached_common run.Run.file) reached1
-
-let reached_common_2 =
-  Runs.keep_if (fun run -> Hashtbl.mem reached_common run.Run.file) reached2
-
-let reached_only_1 =
-  Runs.keep_if
-    (fun run -> not @@ Hashtbl.mem reached_common run.Run.file)
-    reached1
-
-let reached_only_2 =
-  Runs.keep_if
-    (fun run -> not @@ Hashtbl.mem reached_common run.Run.file)
-    reached2
-
-let report1_found_by_2_not_by_1 =
-  Runs.keep_if
-    (fun run ->
-      let f = run.Run.file in
-      Hashtbl.mem reached_tbl2 f && (not @@ Hashtbl.mem reached_tbl1 f) )
-    report1
-
-let report2_found_by_1_not_by_2 =
-  Runs.keep_if
-    (fun run ->
-      let f = run.Run.file in
-      Hashtbl.mem reached_tbl1 f && (not @@ Hashtbl.mem reached_tbl2 f) )
-    report2
-
-let () =
   if count_all1 <> count_all2 then
     Format.printf
       "WARNING: runs don't have the same total of runs (tool 1 has %d and tool \
@@ -168,4 +158,6 @@ let () =
     (Format.pp_print_list
        ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
        Fpath.pp )
-    (Runs.files reached_only_2)
+    (Runs.files reached_only_2);
+
+    Ok ()

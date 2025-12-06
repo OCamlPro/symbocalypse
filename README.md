@@ -1,27 +1,28 @@
 # Symbocalypse -- Symbolic Execution Benchmarks
 
-## Installing dependencies
+## Building
+
+You first need to install the required dependencies, either through `opam` or `nix`.
 
 ```shell-session
-$ sudo apt install libcairo2-dev
-$ git clone git@github.com:thierry-f-78/pie.git
-$ cd pie
-$ sudo make install DESTDIR=/usr/local/
+$ dune build @install
+$ dune exec -- symbocalypse --help
 ```
 
-## Running testcomp
+## Fetching the benchmarks and the tools
 
-### Usage:
+This may take a while and use a lot of disk space.
 
 ```shell-session
 $ git submodule update --init --depth 1
-$ dune exec -- testcomp/testcomp.exe
 ```
 
-You can additionally specify a timeout:
+## Running Test-Comp
+
+With a 5 seconds timeout:
 
 ```shell-session
-$ dune exec -- testcomp/testcomp.exe 5 # timeout of 5 seconds
+$ symbocalypse testcomp 5
 ```
 
 A folder `testcomp-results-YYYY-MM-DD_HHhMMhSSs` has been created with a lot of output. It contains `results-report/index.html` which is the recommended way to visualize the results.
@@ -33,14 +34,14 @@ For information on creating webhooks, see [this](https://zulip.com/integrations/
 Next, just set the `ZULIP_WEBHOOK` environment variable with the generated webhook and launch the script:
 
 ```shell-session
-export ZULIP_WEBHOOK="https://saussice.zulipchat.com/api/v1/external/slack_incoming?api_key=...&stream=germany&topic=bratwurst"
-dune exec ./testcomp/testcomp.exe
+$ export ZULIP_WEBHOOK="https://saussice.zulipchat.com/api/v1/external/slack_incoming?api_key=...&stream=germany&topic=bratwurst"
+$ symbocalypse testcomp 5
 ```
 
 ## Generate the report by hand
 
 ```shell-session
-$ dune exec -- report/bin/report.exe testcomp/results # this is an example of an old run, use the correct file instead
+$ symbocalypse report testcomp-results-XYZ/results
 ```
 
 A folder `results-report` should be available in the working directory with the `index.html` file that contains the results.
@@ -48,5 +49,5 @@ A folder `results-report` should be available in the working directory with the 
 ## Comparing two runs
 
 ```shell-session
-$ dune exec diff/diff.exe -- results1 results2
+$ symbocalypse diff results1 results2
 ```
