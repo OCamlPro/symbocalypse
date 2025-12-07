@@ -5,7 +5,7 @@
 You first need to install the required dependencies, either through `opam` or `nix`.
 
 ```shell-session
-$ dune build @install
+$ dune build @install --profile release
 $ dune exec -- symbocalypse --help
 ```
 
