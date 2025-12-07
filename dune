@@ -1,6 +1,6 @@
 (env
  (release
   (ocamlopt_flags
-   (:standard -O3))))
+   (:standard -O3 -unsafe -noassert))))
 
 (dirs :standard \ klee symbiotic pie results-*)
