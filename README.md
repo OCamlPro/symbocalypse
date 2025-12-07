@@ -25,7 +25,7 @@ With a 5 seconds timeout:
 $ symbocalypse testcomp owi 5
 ```
 
-A folder `testcomp-results-YYYY-MM-DD_HHhMMhSSs` has been created with a lot of output. It contains `results-report/index.html` which is the recommended way to visualize the results.
+A folder `testcomp-results-XYZ/results` has been created with a lot of output. It contains `results-report/index.html` which is the recommended way to visualize the results.
 
 You can replace `owi` by another tool, but also use special options for each tool. To get the list of available tools you can do:
 
@@ -61,5 +61,5 @@ A folder `results-report` should be available in the working directory with the 
 ## Comparing two runs
 
 ```shell-session
-$ symbocalypse diff results1 results2
+$ symbocalypse diff testcomp-results-XYZ/results testcomp-results-ABC/results
 ```
