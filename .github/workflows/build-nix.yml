@@ -26,6 +26,9 @@ jobs:
             git checkout ${{ github.ref_name }}
           fi
 
+          git submodule update --init --depth 1 tools/owi
+          git submodule update --init --depth 1 tools/soteria
+
           nix-shell --run "
             ODOC_WARN_ERROR=true
             dune build @fmt -p symbocalypse &&
