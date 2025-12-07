@@ -46,7 +46,7 @@ let owi =
       Arg.conv (of_string, Fmt.string)
     in
     let doc = {|exploration strategy to use ("fifo", "lifo" or "random")|} in
-    Arg.(value & opt exploration_conv "fifo" & info [ "exploration" ] ~doc)
+    Arg.(value & opt exploration_conv "random" & info [ "exploration" ] ~doc)
   and+ optimisation_level =
     let doc = "specify which optimization level to use" in
     Arg.(value & opt int 1 & info [ "O" ] ~doc)
