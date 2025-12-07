@@ -164,7 +164,7 @@ let notify_finished runs timeout reference_name output_dir =
        @\n\
        %a@\n\
        @\n\
-       Memory stats (in kilobytes):@\n\
+       Memory stats (in MB):@\n\
        @\n\
        %a@."
       reference_name timeout Fpath.pp output_dir Runs.pp_table_results

@@ -6,4 +6,4 @@ type t =
   }
 
 let pp fmt { clock; utime; stime; maxrss } =
-  Fmt.pf fmt "%4.2f %4.2f %4.2f %Ld" clock utime stime maxrss
+  Fmt.pf fmt "%.2G %.2G %.2G %LdMB" clock utime stime (Int64.div maxrss 1024L)

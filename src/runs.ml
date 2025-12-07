@@ -158,14 +158,17 @@ let pp_table_statistics fmt results =
     total mean median min max
 
 let pp_table_memory fmt results =
-  let total = sum_maxrss results in
-  let mean = mean_maxrss results in
-  let median = median_maxrss results in
+  let to_mb kb = Int64.div kb 1024L in
+  let total = sum_maxrss results |> to_mb in
+  let mean = Float.div (mean_maxrss results) 1024. in
+  let median = Float.div (median_maxrss results) 1024. in
   let min, max = min_max_maxrss results in
+  let min = to_mb min in
+  let max = to_mb max in
   Format.fprintf fmt
     "| Total | Mean | Median | Min | Max |@\n\
      |:-----:|:----:|:------:|:---:|:---:|@\n\
-     | %Ld | %0.2f | %0.2f | %Ld | %Ld |@\n"
+     | %Ld |  %.2G  |  %.2G  |  %Ld |  %Ld |@\n"
     total mean median min max
 
 let map = List.map
