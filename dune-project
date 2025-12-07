@@ -23,6 +23,7 @@
   (extunix
    (>= 0.4.4))
   rusage
+  processor
   smtml
   yaml
   cohttp
