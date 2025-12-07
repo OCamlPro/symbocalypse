@@ -128,7 +128,7 @@ let pp_quick_results fmt results =
       | Signaled _ | Stopped _ -> incr killed
       | Other _ -> incr other )
     results;
-  Format.fprintf fmt
+  Fmt.pf fmt
     "Nothing: %6i    Reached: %6i    Timeout: %6i    Other: %6i    Killed: %6i"
     !nothing !reached !timeout !other !killed
 
@@ -139,7 +139,7 @@ let pp_table_results fmt results =
   let other = count_other results in
   let killed = count_killed results in
   let total = count_all results in
-  Format.fprintf fmt
+  Fmt.pf fmt
     "| Nothing | Reached | Timeout | Other | Killed | Total |@\n\
      |:-------:|:-------:|:-------:|:-----:|:------:|:-----:|@\n\
      | %6i | %6i | %6i | %6i | %6i | %6i |"
@@ -151,7 +151,7 @@ let pp_table_statistics fmt results =
   let median = median_clock results in
   let min = min_clock results in
   let max = max_clock results in
-  Format.fprintf fmt
+  Fmt.pf fmt
     "| Total | Mean | Median | Min | Max |@\n\
      |:-----:|:----:|:------:|:---:|:---:|@\n\
      | %.2G | %.2G | %.2G | %.2G | %.2G |@\n"

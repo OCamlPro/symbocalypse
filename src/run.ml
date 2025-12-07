@@ -33,4 +33,4 @@ let is_killed { res; _ } = Run_result.is_killed res
 let is_other { res; _ } = Run_result.is_other res
 
 let pp_header total fmt (i, file) =
-  Format.fprintf fmt "Run %d/%d: %a" i total Fpath.pp file
+  Fmt.pf fmt "Run %d/%d: %a" i total Fpath.pp file

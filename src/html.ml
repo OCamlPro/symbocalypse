@@ -1,8 +1,8 @@
 let make runs output_dir reference_name =
   let gen_time =
     let t = Unix.localtime @@ Unix.gettimeofday () in
-    Format.sprintf "%d-%02d-%02d at %02dh%02dm%02ds" (1900 + t.tm_year)
-      (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
+    Fmt.str "%d-%02d-%02d at %02dh%02dm%02ds" (1900 + t.tm_year) (1 + t.tm_mon)
+      t.tm_mday t.tm_hour t.tm_min t.tm_sec
   in
 
   let open Tyxml in
@@ -18,8 +18,8 @@ let make runs output_dir reference_name =
               (Runs.map
                  (fun run ->
                    li
-                     [ Format.kasprintf txt "run %d: " run.Run.i
-                     ; code [ Format.kasprintf txt "%a" Fpath.pp run.file ]
+                     [ Fmt.kstr txt "run %d: " run.Run.i
+                     ; code [ Fmt.kstr txt "%a" Fpath.pp run.file ]
                      ] )
                  runs )
           ]
@@ -35,7 +35,7 @@ let make runs output_dir reference_name =
   let body =
     div
       [ p
-          [ Format.ksprintf txt
+          [ Fmt.kstr txt
               "Here are the benchmarks results for %s, generated on the %s."
               reference_name gen_time
           ]
@@ -43,42 +43,40 @@ let make runs output_dir reference_name =
       ; div
           [ img
               ~a:[ a_width 500; a_class [] ]
-              ~src:(Format.sprintf "results_%s_count.svg" reference_name)
+              ~src:(Fmt.str "results_%s_count.svg" reference_name)
               ~alt:"Score made by Owi" ()
           ]
       ; h2 [ txt "Distribution of execution times" ]
       ; div
           [ img
               ~a:[ a_width 500; a_class [] ]
-              ~src:
-                (Format.sprintf "results_%s_time_distribution.png"
-                   reference_name )
+              ~src:(Fmt.str "results_%s_time_distribution.png" reference_name)
               ~alt:"Distribution of execution times" ()
           ]
       ; h2 [ txt "Statistics" ]
       ; div
           [ p
-              [ Format.ksprintf txt "Sum of clock times (reached): %.2G"
+              [ Fmt.kstr txt "Sum of clock times (reached): %.2G"
                   (Runs.sum_clock reached)
               ]
           ; p
-              [ Format.ksprintf txt "Mean of clock times (reached): %.2G"
+              [ Fmt.kstr txt "Mean of clock times (reached): %.2G"
                   (Runs.mean_clock reached)
               ]
           ; p
-              [ Format.ksprintf txt "Sum of utime times (reached): %.2G"
+              [ Fmt.kstr txt "Sum of utime times (reached): %.2G"
                   (Runs.sum_utime reached)
               ]
           ; p
-              [ Format.ksprintf txt "Mean of utime times (reached): %.2G"
+              [ Fmt.kstr txt "Mean of utime times (reached): %.2G"
                   (Runs.mean_utime reached)
               ]
           ; p
-              [ Format.ksprintf txt "Sum of stime times (reached): %.2G"
+              [ Fmt.kstr txt "Sum of stime times (reached): %.2G"
                   (Runs.sum_stime reached)
               ]
           ; p
-              [ Format.ksprintf txt "Mean of stime times (reached): %.2G"
+              [ Fmt.kstr txt "Mean of stime times (reached): %.2G"
                   (Runs.mean_stime reached)
               ]
           ]
@@ -108,7 +106,7 @@ let make runs output_dir reference_name =
   let index_chan = open_out (Fpath.to_string index) in
   let fmt = Format.formatter_of_out_channel index_chan in
 
-  Format.fprintf fmt "%a@\n" (Tyxml.Html.pp ~indent:false ()) html;
+  Fmt.pf fmt "%a@\n" (Tyxml.Html.pp ~indent:false ()) html;
 
   close_out index_chan;
 
@@ -130,5 +128,5 @@ code {
 
   let chan = open_out Fpath.(output_dir // style_file |> to_string) in
   let fmt = Format.formatter_of_out_channel chan in
-  Format.fprintf fmt "%s@\n" style;
+  Fmt.pf fmt "%s@\n" style;
   close_out chan

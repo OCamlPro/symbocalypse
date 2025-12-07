@@ -2,10 +2,6 @@ let ( let* ) o f = match o with Ok v -> f v | Error _ as e -> e
 
 let ( let+ ) o f = match o with Ok v -> Ok (f v) | Error _ as e -> e
 
-let ksprintf = Format.ksprintf
-
-let error = Result.error
-
 let from_file file =
   let file = Fpath.to_string file in
 
@@ -30,16 +26,18 @@ let from_file file =
 
   let parse_float s =
     match float_of_string_opt s with
-    | None -> ksprintf error "malformed float %S" s
+    | None -> Fmt.error_msg "malformed float %S" s
     | Some f -> Ok f
   in
 
   let parse_int64 s =
-    let s = if String.ends_with s ~suffix:"MB" then
-      String.sub s 0 (String.length s - 2)
-    else s in
+    let s =
+      if String.ends_with s ~suffix:"MB" then
+        String.sub s 0 (String.length s - 2)
+      else s
+    in
     match Int64.of_string_opt s with
-    | None -> ksprintf error "malformed int64 %S" s
+    | None -> Fmt.error_msg "malformed int64 %S" s
     | Some i -> Ok i
   in
 
@@ -53,7 +51,7 @@ let from_file file =
 
   let parse_int s =
     match int_of_string_opt s with
-    | None -> ksprintf error "malformed int %S" s
+    | None -> Fmt.error_msg "malformed int %S" s
     | Some i -> Ok i
   in
 
@@ -63,12 +61,12 @@ let from_file file =
     let* counter, file =
       match String.split_on_char ' ' run |> rm_empty_str with
       | [ "Run"; counter; file ] -> Ok (counter, Fpath.v file)
-      | _ -> ksprintf error "malformed run: %S" run
+      | _ -> Fmt.error_msg "malformed run: %S" run
     in
     let* i =
       match String.split_on_char '/' counter |> rm_empty_str with
       | [ i; _total ] -> parse_int i
-      | _ -> ksprintf error "malformed counter: %S" counter
+      | _ -> Fmt.error_msg "malformed counter: %S" counter
     in
     let+ res =
       match String.split_on_char ' ' result |> rm_empty_str with
@@ -93,7 +91,7 @@ let from_file file =
         let* rusage = parse_rusage t1 t2 t3 rss in
         let+ n = parse_int n in
         Run_result.Signaled (rusage, n)
-      | _ -> ksprintf error "malformed result: %S" result
+      | _ -> Fmt.error_msg "malformed result: %S" result
     in
     { Run.i; res; file }
   in
@@ -101,6 +99,6 @@ let from_file file =
   List.fold_left
     (fun runs v ->
       match parse_run v with
-      | Error e -> failwith e
+      | Error (`Msg e) -> failwith e
       | Ok run -> Runs.add run runs )
     Runs.empty runs

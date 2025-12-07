@@ -51,9 +51,7 @@ let make runs output_dir reference_name =
       (`Png
          Fpath.(
            output_dir
-           // v
-                (Format.sprintf "results_%s_time_distribution.png"
-                   reference_name )
+           // v (Fmt.str "results_%s_time_distribution.png" reference_name)
            |> to_string ) )
   in
 

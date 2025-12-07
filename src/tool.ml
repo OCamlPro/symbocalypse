@@ -19,8 +19,8 @@ let to_short_name = function
 
 let to_reference_name = function
   | Owi { workers; optimisation_level; solver; exploration_strategy } ->
-    Format.asprintf "owi_w%d_O%d_s%a_%s" workers optimisation_level
-      Smtml.Solver_type.pp solver exploration_strategy
+    Fmt.str "owi_w%d_O%d_s%a_%s" workers optimisation_level Smtml.Solver_type.pp
+      solver exploration_strategy
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
   | Soteria -> "soteria"
@@ -37,7 +37,7 @@ let mk_symbiotic () = Symbiotic
 exception Sigchld
 
 let kill_klee_descendants () =
-  let _ : int = Format.ksprintf Sys.command "pkill klee" in
+  let _ : int = Fmt.kstr Sys.command "pkill klee" in
   ()
 
 let wait_pid ~pid ~timeout ~tool ~dst_stderr =
@@ -133,12 +133,12 @@ let execvp ~output_dir tool file timeout =
       , [ "_build/default/owi/src/bin/owi.exe"; "c" ]
         @ [ "--unsafe"
           ; "--fail-on-assertion-only"
-          ; Format.sprintf "-O%d" optimisation_level
-          ; Format.sprintf "-w%d" workers
+          ; Fmt.str "-O%d" optimisation_level
+          ; Fmt.str "-w%d" workers
           ; "--workspace"
           ; output_dir
           ; "--solver"
-          ; Format.asprintf "%a" Smtml.Solver_type.pp solver
+          ; Fmt.str "%a" Smtml.Solver_type.pp solver
           ; "--exploration"
           ; exploration_strategy
           ; "-q"
@@ -160,7 +160,7 @@ let execvp ~output_dir tool file timeout =
       ( path_to_symbiotic
       , [ path_to_symbiotic
         ; "--test-comp"
-        ; Format.sprintf "--timeout=%s" timeout
+        ; Fmt.str "--timeout=%s" timeout
         ; "--prp=testcomp/sv-benchmarks/c/properties/coverage-error-call.prp"
         ; file
         ] )
@@ -203,5 +203,5 @@ let fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout =
     loop 10
   in
   Logs.app (fun m -> m "  %a" Run_result.pp result);
-  Format.fprintf fmt "%a@\n" Run_result.pp result;
+  Fmt.pf fmt "%a@\n" Run_result.pp result;
   result

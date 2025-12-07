@@ -86,27 +86,27 @@ let run file1 file2 =
   in
 
   if count_all1 <> count_all2 then
-    Format.printf
+    Fmt.pr
       "WARNING: runs don't have the same total of runs (tool 1 has %d and tool \
        2 has %d)@\n"
       count_all1 count_all2;
-  Format.printf "tool1 had %03d reached and tool2 had %03d reached@\n"
-    count_reached1 count_reached2;
-  Format.printf "tool1 had %03d timeout and tool2 had %03d timeout@\n"
-    count_timeout1 count_timeout2;
-  Format.printf "tool1 had %03d nothing and tool2 had %03d nothing@\n"
-    count_nothing1 count_nothing2;
-  Format.printf "tool1 had %03d other   and tool2 had %03d other@\n"
-    count_other1 count_other2;
-  Format.printf "tool1 had %03d killed  and tool2 had %03d killed@\n@\n"
-    count_killed1 count_killed2;
-  Format.printf "tools have %03d reached tasks in common@\n@\n"
+  Fmt.pr "tool1 had %03d reached and tool2 had %03d reached@\n" count_reached1
+    count_reached2;
+  Fmt.pr "tool1 had %03d timeout and tool2 had %03d timeout@\n" count_timeout1
+    count_timeout2;
+  Fmt.pr "tool1 had %03d nothing and tool2 had %03d nothing@\n" count_nothing1
+    count_nothing2;
+  Fmt.pr "tool1 had %03d other   and tool2 had %03d other@\n" count_other1
+    count_other2;
+  Fmt.pr "tool1 had %03d killed  and tool2 had %03d killed@\n@\n" count_killed1
+    count_killed2;
+  Fmt.pr "tools have %03d reached tasks in common@\n@\n"
     (Hashtbl.length reached_common);
-  Format.printf "tool1 had %03d tasks tool2 did not found@\n"
+  Fmt.pr "tool1 had %03d tasks tool2 did not found@\n"
     (count_reached1 - count_common);
-  Format.printf "tool2 had %03d tasks tool1 did not found@\n@\n"
+  Fmt.pr "tool2 had %03d tasks tool1 did not found@\n@\n"
     (count_reached2 - count_common);
-  Format.printf
+  Fmt.pr
     "on      commonly  reached tasks, tool 1 took %04f sec. (mean %04f, median \
      %04f, min %04f, max %04f) and tool 2 took %06f sec. (mean %04f, median \
      %04f, min %04f, max %04f)@\n"
@@ -120,7 +120,7 @@ let run file1 file2 =
     (Runs.median_clock reached_common_2)
     (Runs.min_clock reached_common_2)
     (Runs.max_clock reached_common_2);
-  Format.printf
+  Fmt.pr
     "on *not commonly* reached tasks, tool 1 took %04f sec. (mean %04f, median \
      %04f, min %04f, max %04f) and tool 2 took %06f sec. (mean %04f, median \
      %04f, min %04f, max %04f)@\n\
@@ -135,29 +135,25 @@ let run file1 file2 =
     (Runs.median_clock reached_only_2)
     (Runs.min_clock reached_only_2)
     (Runs.max_clock reached_only_2);
-  Format.printf
+  Fmt.pr
     "among tasks reached only by tool 1, tool 2 replied %03d nothing, %03d \
      timeout, %02d other and %02d killed@\n"
     (Runs.count_nothing report2_found_by_1_not_by_2)
     (Runs.count_timeout report2_found_by_1_not_by_2)
     (Runs.count_other report2_found_by_1_not_by_2)
     (Runs.count_killed report2_found_by_1_not_by_2);
-  Format.printf
+  Fmt.pr
     "among tasks reached only by tool 2, tool 1 replied %03d nothing, %03d \
      timeout, %02d other and %02d killed@\n"
     (Runs.count_nothing report1_found_by_2_not_by_1)
     (Runs.count_timeout report1_found_by_2_not_by_1)
     (Runs.count_other report1_found_by_2_not_by_1)
     (Runs.count_killed report1_found_by_2_not_by_1);
-  Format.printf "tasks solved only by tool 1:@\n  @[<v>%a@]@\n"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-       Fpath.pp )
+  Fmt.pr "tasks solved only by tool 1:@\n  @[<v>%a@]@\n"
+    (Fmt.list ~sep:(fun fmt () -> Fmt.pf fmt "@\n") Fpath.pp)
     (Runs.files reached_only_1);
-  Format.printf "tasks solved only by tool 2:@\n  @[<v>%a@]@\n"
-    (Format.pp_print_list
-       ~pp_sep:(fun fmt () -> Format.fprintf fmt "@\n")
-       Fpath.pp )
+  Fmt.pr "tasks solved only by tool 2:@\n  @[<v>%a@]@\n"
+    (Fmt.list ~sep:(fun fmt () -> Fmt.pf fmt "@\n") Fpath.pp)
     (Runs.files reached_only_2);
 
   Ok ()

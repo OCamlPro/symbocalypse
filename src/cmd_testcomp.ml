@@ -9,19 +9,20 @@ let ( let+ ) o f = match o with Ok v -> Ok (f v) | Error _ as e -> e
 
 let ok_or_fail = function
   | Error (`Msg m) ->
-    Format.eprintf "ERROR: %s@\n" m;
+    Fmt.epr "ERROR: %s@\n" m;
     exit 1
   | Error (`Unix e) ->
-    Format.eprintf "ERROR: %s@\n" (Unix.error_message e);
+    Fmt.epr "ERROR: %s@\n" (Unix.error_message e);
     exit 1
   | Ok x -> x
 
 let object_field (yml : Yaml.value) (field : string) =
   match yml with
-  | `O l ->
-    List.assoc_opt field l
-    |> Option.to_result ~none:(`Msg (Format.sprintf "missing field %s" field))
-  | _ -> Error (`Msg "malformed yaml")
+  | `O l -> (
+    List.assoc_opt field l |> function
+    | None -> Fmt.error_msg "missing field %s" field
+    | Some v -> Ok v )
+  | _ -> Fmt.error_msg "malformed yaml"
 
 let array_map f (yml : Yaml.value) =
   match yml with
@@ -101,7 +102,7 @@ let runs tool timeout output_dir =
     Fpath.(output_dir / "results") |> Fpath.to_string |> open_out
   in
   let fmt = Format.formatter_of_out_channel output_chan in
-  let pp x = Format.fprintf fmt x in
+  let pp x = Fmt.pf fmt x in
   let files = List.sort Fpath.compare files in
   let len = List.length files in
   let results = ref Runs.empty in
@@ -143,14 +144,14 @@ let notify_finished runs timeout reference_name output_dir =
     match OS.Cmd.out_string ~trim:true output with
     | Ok (stdout, (_, `Exited 0)) -> stdout
     | Error (`Msg err) ->
-      Format.eprintf "ERROR: %s@." err;
+      Fmt.epr "ERROR: %s@." err;
       "unknown"
     | Ok (stdout, (_, (`Exited _ | `Signaled _))) ->
-      Format.eprintf "%s@\nWARN: Unable to fetch git HEAD@." stdout;
+      Fmt.epr "%s@\nWARN: Unable to fetch git HEAD@." stdout;
       "unknown"
   in
   let text =
-    Format.asprintf
+    Fmt.str
       "@[<v>Using:@;\
        - Tool: `%s`@;\
        - Timeout: `%F`@;\
@@ -172,11 +173,11 @@ let notify_finished runs timeout reference_name output_dir =
   in
   (* Notify on `ZULIP_WEBHOOK` *)
   match Bos.OS.Env.var "ZULIP_WEBHOOK" with
-  | None -> Format.eprintf "%s" text
+  | None -> Fmt.epr "%s" text
   | Some url ->
     let url = Uri.of_string url in
     let title =
-      Format.sprintf "Benchmark results (commit hash=%s) :octopus:" (head ())
+      Fmt.str "Benchmark results (commit hash=%s) :octopus:" (head ())
     in
     let body =
       (* Using Yojson just to ensure we're sending correct json *)
@@ -204,18 +205,19 @@ let notify_finished runs timeout reference_name output_dir =
     in
     let result, _ = Lwt_main.run @@ send url body in
     let status = Response.status result in
-    Format.eprintf "Server responded: %s@." (Code.string_of_status status)
+    Fmt.epr "Server responded: %s@." (Code.string_of_status status)
 
 let run tool timeout =
   let t = Unix.localtime @@ Unix.gettimeofday () in
   let reference_name = Tool.to_reference_name tool in
   let filename =
-    Format.sprintf "results-testcomp-%s-%d-%02d-%02d_%02dh%02dm%02ds/"
-      reference_name (1900 + t.tm_year) (1 + t.tm_mon) t.tm_mday t.tm_hour
-      t.tm_min t.tm_sec
+    Fmt.str "results-testcomp-%s-%d-%02d-%02d_%02dh%02dm%02ds/" reference_name
+      (1900 + t.tm_year) (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
   in
   let output_dir = Fpath.v filename in
-  let _ = Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> ok_or_fail in
+  let _ : bool =
+    Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> ok_or_fail
+  in
   let runs = runs tool timeout output_dir in
   let runs = ok_or_fail runs in
   notify_finished runs timeout reference_name output_dir;
