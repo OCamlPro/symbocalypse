@@ -32,12 +32,12 @@ let
 
   });
   owiSubShell = import ./tools/owi/shell.nix { inherit pkgs; };
-
+  soteriaSubShell = import ./tools/soteria/shell.nix { inherit pkgs; };
 in
 
 pkgs.mkShell {
   dontDetectOcamlConflicts = true;
-  inputsFrom = [ owiSubShell ];
+  inputsFrom = [ owiSubShell soteriaSubShell ];
   nativeBuildInputs = with pkgs.ocamlPackages; [
     dune_3
     findlib
@@ -45,7 +45,8 @@ pkgs.mkShell {
     ocaml
     ocamlformat
     ocp-browser
-    pkgs.python3
+    pkgs.python3 # KLEE
+    pkgs.z3 # soteria-c
   ];
   propagatedBuildInputs = with pkgs.ocamlPackages; [
     cmdliner

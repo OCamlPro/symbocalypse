@@ -6,6 +6,7 @@ type t =
       }
   | Klee
   | Symbiotic
+  | Soteria
 
 let ( let+ ) o f = match o with Ok v -> Ok (f v) | Error _ as e -> e
 
@@ -13,6 +14,7 @@ let to_short_name = function
   | Owi _ -> "owi"
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
+  | Soteria -> "soteria"
 
 let to_reference_name = function
   | Owi { workers; optimisation_level; solver } ->
@@ -20,11 +22,14 @@ let to_reference_name = function
       Smtml.Solver_type.pp solver
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
+  | Soteria -> "soteria"
 
 let mk_owi ~workers ~optimisation_level ~solver =
   Owi { workers; optimisation_level; solver }
 
 let mk_klee () = Klee
+
+let mk_soteria () = Soteria
 
 let mk_symbiotic () = Symbiotic
 
@@ -75,6 +80,10 @@ let wait_pid =
       | WEXITED code -> begin
         match tool with
         | Owi _ ->
+          if code = 0 then Nothing rusage
+          else if code = 13 then Reached rusage
+          else Other (rusage, code)
+        | Soteria ->
           if code = 0 then Nothing rusage
           else if code = 13 then Reached rusage
           else Other (rusage, code)
@@ -155,6 +164,9 @@ let execvp ~output_dir tool file timeout =
         ; "--prp=testcomp/sv-benchmarks/c/properties/coverage-error-call.prp"
         ; file
         ] )
+    | Soteria ->
+      let path_to_soteria = "soteria-c" in
+      (path_to_soteria, [ path_to_soteria; "exec"; file ])
   in
   let args = Array.of_list args in
   Unix.execvp bin args
@@ -190,5 +202,6 @@ let fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout =
     in
     loop 10
   in
+  Logs.app (fun m -> m "  %a" Run_result.pp result);
   Format.fprintf fmt "%a@\n" Run_result.pp result;
   result
