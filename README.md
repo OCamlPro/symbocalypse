@@ -22,10 +22,22 @@ $ git submodule update --init --depth 1
 With a 5 seconds timeout:
 
 ```shell-session
-$ symbocalypse testcomp 5
+$ symbocalypse testcomp owi 5
 ```
 
 A folder `testcomp-results-YYYY-MM-DD_HHhMMhSSs` has been created with a lot of output. It contains `results-report/index.html` which is the recommended way to visualize the results.
+
+You can replace `owi` by another tool, but also use special options for each tool. To get the list of available tools you can do:
+
+```shell-session
+$ symbocalypse testcomp --help
+```
+
+To get the available options for a tool you can do:
+
+```shell-session
+$ symbocalypse testcomp owi --help
+```
 
 ### Zulip notification:
 
