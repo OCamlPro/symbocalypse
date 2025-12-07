@@ -29,6 +29,9 @@ jobs:
           git submodule update --init --depth 1 tools/owi
           git submodule update --init --depth 1 tools/soteria
 
+          # because .ocamlformat-ignore is broken ><'
+          rm tools/soteria/.ocamlformat
+
           nix-shell --run "
             ODOC_WARN_ERROR=true
             dune build @fmt -p symbocalypse &&
