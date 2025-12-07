@@ -17,17 +17,10 @@ let is_timeout = function Timeout _ -> true | _ -> false
 let is_other = function Other _ -> true | _ -> false
 
 let pp fmt = function
-  | Timeout t ->
-    Format.fprintf fmt "Timeout in %.2G %.2G %.2G" t.clock t.utime t.stime
-  | Nothing t ->
-    Format.fprintf fmt "Nothing in %.2G %.2G %.2G" t.clock t.utime t.stime
-  | Reached t ->
-    Format.fprintf fmt "Reached in %.2G %.2G %.2G" t.clock t.utime t.stime
-  | Other (t, code) ->
-    Format.fprintf fmt "Other %i in %.2G %.2G %.2G" code t.clock t.utime t.stime
+  | Timeout t -> Format.fprintf fmt "Timeout in %a" Timings.pp t
+  | Nothing t -> Format.fprintf fmt "Nothing in %a" Timings.pp t
+  | Reached t -> Format.fprintf fmt "Reached in %a" Timings.pp t
+  | Other (t, code) -> Format.fprintf fmt "Other %i in %a" code Timings.pp t
   | Signaled (t, code) ->
-    Format.fprintf fmt "Signaled %i in %.2G %.2G %.2G" code t.clock t.utime
-      t.stime
-  | Stopped (t, code) ->
-    Format.fprintf fmt "Stopped %i in %.2G %.2G %.2G" code t.clock t.utime
-      t.stime
+    Format.fprintf fmt "Signaled %i in %a" code Timings.pp t
+  | Stopped (t, code) -> Format.fprintf fmt "Stopped %i in %a" code Timings.pp t

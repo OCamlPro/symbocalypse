@@ -35,6 +35,9 @@ let from_file file =
   in
 
   let parse_int64 s =
+    let s = if String.ends_with s ~suffix:"MB" then
+      String.sub s 0 (String.length s - 2)
+    else s in
     match Int64.of_string_opt s with
     | None -> ksprintf error "malformed int64 %S" s
     | Some i -> Ok i
