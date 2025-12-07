@@ -5,7 +5,11 @@ val to_short_name : t -> string
 val to_reference_name : t -> string
 
 val mk_owi :
-  workers:int -> optimisation_level:int -> solver:Smtml.Solver_type.t -> t
+     workers:int
+  -> optimisation_level:int
+  -> solver:Smtml.Solver_type.t
+  -> exploration_strategy:string
+  -> t
 
 val mk_klee : unit -> t
 

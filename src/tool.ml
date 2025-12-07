@@ -3,6 +3,7 @@ type t =
       { optimisation_level : int
       ; workers : int
       ; solver : Smtml.Solver_type.t
+      ; exploration_strategy : string
       }
   | Klee
   | Symbiotic
@@ -17,15 +18,15 @@ let to_short_name = function
   | Soteria -> "soteria"
 
 let to_reference_name = function
-  | Owi { workers; optimisation_level; solver } ->
-    Format.asprintf "owi_w%d_O%d_s%a" workers optimisation_level
-      Smtml.Solver_type.pp solver
+  | Owi { workers; optimisation_level; solver; exploration_strategy } ->
+    Format.asprintf "owi_w%d_O%d_s%a_%s" workers optimisation_level
+      Smtml.Solver_type.pp solver exploration_strategy
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
   | Soteria -> "soteria"
 
-let mk_owi ~workers ~optimisation_level ~solver =
-  Owi { workers; optimisation_level; solver }
+let mk_owi ~workers ~optimisation_level ~solver ~exploration_strategy =
+  Owi { workers; optimisation_level; solver; exploration_strategy }
 
 let mk_klee () = Klee
 
@@ -130,7 +131,7 @@ let execvp ~output_dir tool file timeout =
   let timeout = string_of_int timeout in
   let bin, args =
     match tool with
-    | Owi { workers; optimisation_level; solver } ->
+    | Owi { workers; optimisation_level; solver; exploration_strategy } ->
       ( "owi"
       , [ "_build/default/owi/src/bin/owi.exe"; "c" ]
         @ [ "--unsafe"
@@ -141,6 +142,8 @@ let execvp ~output_dir tool file timeout =
           ; output_dir
           ; "--solver"
           ; Format.asprintf "%a" Smtml.Solver_type.pp solver
+          ; "--exploration"
+          ; exploration_strategy
           ; "-q"
           ; file
           ] )

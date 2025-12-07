@@ -35,7 +35,22 @@ let log_level =
 (* Common terms *)
 
 let owi =
-  let+ solver =
+  let+ exploration_strategy =
+    let exploration_conv =
+      let of_string s =
+        match String.lowercase_ascii s with
+        | ("fifo" | "lifo" | "random" | "smart") as s -> Ok s
+        | _ ->
+          Fmt.error_msg {|Expected "fifo", "lifo" or "random" but got "%s"|} s
+      in
+      Arg.conv (of_string, Fmt.string)
+    in
+    let doc = {|exploration strategy to use ("fifo", "lifo" or "random")|} in
+    Arg.(value & opt exploration_conv "fifo" & info [ "exploration" ] ~doc)
+  and+ optimisation_level =
+    let doc = "specify which optimization level to use" in
+    Arg.(value & opt int 1 & info [ "O" ] ~doc)
+  and+ solver =
     let docv = Arg.conv_docv solver_conv in
     let doc =
       let pp_bold_solver fmt ty =
@@ -63,7 +78,7 @@ let owi =
       & opt int Processor.Query.core_count
       & info [ "workers"; "w" ] ~doc ~absent:"n" )
   in
-  Tool.mk_owi ~workers ~optimisation_level:3 ~solver
+  Tool.mk_owi ~workers ~optimisation_level ~solver ~exploration_strategy
 
 let result_file =
   let doc = "result file" in

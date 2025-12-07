@@ -160,4 +160,4 @@ let run file1 file2 =
        Fpath.pp )
     (Runs.files reached_only_2);
 
-    Ok ()
+  Ok ()
