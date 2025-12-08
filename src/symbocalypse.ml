@@ -200,7 +200,7 @@ let version_info =
 let version_cmd =
   let+ () = setup_log
   and+ () = Term.const () in
-  Cmd_version.cmd ()
+  Cmd_version.run ()
 
 (* symbocalypse *)
 let cli =

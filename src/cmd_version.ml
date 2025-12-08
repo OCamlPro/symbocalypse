@@ -25,4 +25,4 @@ let pp fmt () =
 
 let symbocalypse_version () = Fmt.str "symbocalypse version %s" (version ())
 
-let cmd () = Ok (Logs.app (fun m -> m "%a" pp ()))
+let run () = Ok (Logs.app (fun m -> m "%a" pp ()))
