@@ -41,10 +41,9 @@ jobs:
           apt update
 
           # Install system and opam-repo dependencies
-          opam install . --depext-only --with-test
-          opam install . --deps-only --with-test
-          opam install tools/owi/owi.opam tools/soteria/soteria.opam tools/soteria/soteria-c.opam --depext-only
-          opam install tools/owi/owi.opam tools/soteria/soteria.opam tools/soteria/soteria-c.opam --deps-only
+          # TODO: use `--with-test` only for "." but not for owi or soteria
+          opam install . tools/owi/owi.opam tools/soteria/soteria.opam tools/soteria/soteria-c.opam --depext-only --with-test
+          opam install . tools/owi/owi.opam tools/soteria/soteria.opam tools/soteria/soteria-c.opam --deps-only --with-test
 
           # Build and test
           dune build @install -p symbocalypse,owi,soteria-c
