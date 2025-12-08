@@ -37,7 +37,7 @@ jobs:
             dune build @fmt -p symbocalypse &&
             dune build @doc -p symbocalypse &&
             dune build @install -p symbocalypse &&
-            dune build @runtest -p symbocalypse
+            dune runtest test/
           "
 
           nix-shell -p git --run "

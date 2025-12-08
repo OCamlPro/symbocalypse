@@ -43,4 +43,4 @@ jobs:
 
           # Build and test
           dune build @install -p symbocalypse
-          dune build @runtest -p symbocalypse
+          dune runtest test/
