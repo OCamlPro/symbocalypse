@@ -4,6 +4,8 @@ val to_short_name : t -> string
 
 val to_reference_name : t -> string
 
+val tool_path_env_var_name : string
+
 val mk_owi :
      workers:int
   -> optimisation_level:int

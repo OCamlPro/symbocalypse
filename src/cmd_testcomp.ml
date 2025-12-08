@@ -207,7 +207,11 @@ let notify_finished runs timeout reference_name output_dir =
     Fmt.epr "Server responded: %s@." (Code.string_of_status status)
 
 let run tool timeout max_tests =
-  let* () = Tool.check_if_available tool in
+  let* () =
+    match Bos.OS.Env.var Tool.tool_path_env_var_name with
+    | None -> Tool.check_if_available tool
+    | Some _ -> Ok ()
+  in
   let t = Unix.localtime @@ Unix.gettimeofday () in
   let reference_name = Tool.to_reference_name tool in
   let filename =

@@ -34,11 +34,17 @@ let mk_soteria () = Soteria
 
 let mk_symbiotic () = Symbiotic
 
-let get_path = function
-  | Owi _ -> "_build/install/default/bin/owi"
-  | Klee -> "tools/klee/bin/klee"
-  | Symbiotic -> "tools/symbiotic/bin/symbiotic"
-  | Soteria -> "_build/install/default/bin/soteria-c"
+let tool_path_env_var_name = "S_TOOL_PATH"
+
+let get_path =
+  match Bos.OS.Env.var tool_path_env_var_name with
+  | Some v -> fun _tool -> v
+  | None -> (
+    function
+    | Owi _ -> "_build/install/default/bin/owi"
+    | Klee -> "tools/klee/bin/klee"
+    | Symbiotic -> "tools/symbiotic/bin/symbiotic"
+    | Soteria -> "_build/install/default/bin/soteria-c" )
 
 let help_install = function
   | Owi _ ->
@@ -76,12 +82,14 @@ let is_installed tool =
 
 let check_if_available tool =
   if is_installed tool then Ok ()
-  else begin
+  else
     let path = get_path tool in
-    Logs.err (fun m -> m "Could not find the expected file at %s" path);
+    Logs.err (fun m -> m "Could not find the expected file at `%s`." path);
     help_install tool;
-    Error (`Msg "requested tool not found")
-  end
+    Fmt.error_msg
+      "If you want to override the path, you can set the environment variable \
+       %s."
+      tool_path_env_var_name
 
 exception Sigchld
 
