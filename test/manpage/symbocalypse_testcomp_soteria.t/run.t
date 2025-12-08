@@ -3,7 +3,11 @@
          symbocalypse-testcomp-soteria - Soteria engine
   
   SYNOPSIS
-         symbocalypse testcomp soteria [OPTION]… [timeout]
+         symbocalypse testcomp soteria [--max-tests=VAL] [OPTION]… [timeout]
+  
+  OPTIONS
+         --max-tests=VAL (absent=100000)
+             maximum number of tests to run
   
   COMMON OPTIONS
          --color=WHEN (absent=auto)

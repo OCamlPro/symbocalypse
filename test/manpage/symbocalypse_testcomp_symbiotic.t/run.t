@@ -3,7 +3,12 @@
          symbocalypse-testcomp-symbiotic - Symbiotic engine
   
   SYNOPSIS
-         symbocalypse testcomp symbiotic [OPTION]… [timeout]
+         symbocalypse testcomp symbiotic [--max-tests=VAL] [OPTION]…
+         [timeout]
+  
+  OPTIONS
+         --max-tests=VAL (absent=100000)
+             maximum number of tests to run
   
   COMMON OPTIONS
          --color=WHEN (absent=auto)

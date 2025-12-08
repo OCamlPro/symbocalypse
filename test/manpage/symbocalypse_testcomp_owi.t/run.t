@@ -9,6 +9,9 @@
          --exploration=VAL (absent=random)
              exploration strategy to use ("fifo", "lifo" or "random")
   
+         --max-tests=VAL (absent=100000)
+             maximum number of tests to run
+  
          -O VAL (absent=1)
              specify which optimization level to use
   

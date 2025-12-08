@@ -3,7 +3,11 @@
          symbocalypse-testcomp-klee - KLEE engine
   
   SYNOPSIS
-         symbocalypse testcomp klee [OPTION]… [timeout]
+         symbocalypse testcomp klee [--max-tests=VAL] [OPTION]… [timeout]
+  
+  OPTIONS
+         --max-tests=VAL (absent=100000)
+             maximum number of tests to run
   
   COMMON OPTIONS
          --color=WHEN (absent=auto)

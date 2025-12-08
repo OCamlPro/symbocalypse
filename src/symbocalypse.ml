@@ -34,6 +34,10 @@ let log_level =
 
 (* Common terms *)
 
+let max_tests =
+  let doc = "maximum number of tests to run" in
+  Arg.(value & opt int 100_000 & info [ "max-tests" ] ~doc)
+
 let owi =
   let+ exploration_strategy =
     let exploration_conv =
@@ -137,9 +141,10 @@ let testcomp_klee_info =
 
 let testcomp_klee_cmd =
   let+ () = setup_log
-  and+ timeout in
+  and+ timeout
+  and+ max_tests in
   let tool = Tool.mk_klee () in
-  Cmd_testcomp.run tool timeout
+  Cmd_testcomp.run tool timeout max_tests
 
 (* symbocalypse testcomp owi *)
 let testcomp_owi_info =
@@ -150,8 +155,9 @@ let testcomp_owi_info =
 let testcomp_owi_cmd =
   let+ () = setup_log
   and+ timeout
+  and+ max_tests
   and+ owi in
-  Cmd_testcomp.run owi timeout
+  Cmd_testcomp.run owi timeout max_tests
 
 (* symbocalypse testcomp soteria *)
 let testcomp_soteria_info =
@@ -161,9 +167,10 @@ let testcomp_soteria_info =
 
 let testcomp_soteria_cmd =
   let+ () = setup_log
-  and+ timeout in
+  and+ timeout
+  and+ max_tests in
   let tool = Tool.mk_soteria () in
-  Cmd_testcomp.run tool timeout
+  Cmd_testcomp.run tool timeout max_tests
 
 (* symbocalypse testcomp symbiotic *)
 let testcomp_symbiotic_info =
@@ -173,9 +180,10 @@ let testcomp_symbiotic_info =
 
 let testcomp_symbiotic_cmd =
   let+ () = setup_log
-  and+ timeout in
+  and+ timeout
+  and+ max_tests in
   let tool = Tool.mk_symbiotic () in
-  Cmd_testcomp.run tool timeout
+  Cmd_testcomp.run tool timeout max_tests
 
 (* symbocalypse testcomp *)
 let testcomp_info =

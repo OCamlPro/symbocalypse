@@ -96,7 +96,7 @@ let files () =
   in
   res
 
-let runs tool timeout output_dir =
+let runs tool timeout output_dir max_tests =
   let+ files = files () in
   let output_chan =
     Fpath.(output_dir / "results") |> Fpath.to_string |> open_out
@@ -106,13 +106,12 @@ let runs tool timeout output_dir =
   let files = List.sort Fpath.compare files in
   let len = List.length files in
   let results = ref Runs.empty in
-  let limit = 10_000 in
   List.iteri
     (fun i file ->
       let i = succ i in
-      if i < limit + 1 then begin
-        Logs.app (fun m -> m "%a" (Run.pp_header (min len limit)) (i, file));
-        pp "%a@\n  @[<v>" (Run.pp_header (min len limit)) (i, file);
+      if i <= max_tests then begin
+        Logs.app (fun m -> m "%a" (Run.pp_header (min len max_tests)) (i, file));
+        pp "%a@\n  @[<v>" (Run.pp_header (min len max_tests)) (i, file);
         let result =
           Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
           |> ok_or_fail
@@ -207,7 +206,7 @@ let notify_finished runs timeout reference_name output_dir =
     let status = Response.status result in
     Fmt.epr "Server responded: %s@." (Code.string_of_status status)
 
-let run tool timeout =
+let run tool timeout max_tests =
   let* () = Tool.check_if_available tool in
   let t = Unix.localtime @@ Unix.gettimeofday () in
   let reference_name = Tool.to_reference_name tool in
@@ -219,7 +218,7 @@ let run tool timeout =
   let _ : bool =
     Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> ok_or_fail
   in
-  let runs = runs tool timeout output_dir in
+  let runs = runs tool timeout output_dir max_tests in
   let runs = ok_or_fail runs in
   notify_finished runs timeout reference_name output_dir;
   Gen.full_report runs output_dir reference_name

@@ -6,16 +6,16 @@
          symbocalypse testcomp COMMAND …
   
   COMMANDS
-         klee [OPTION]… [timeout]
+         klee [--max-tests=VAL] [OPTION]… [timeout]
              KLEE engine
   
          owi [OPTION]… [timeout]
              Owi engine
   
-         soteria [OPTION]… [timeout]
+         soteria [--max-tests=VAL] [OPTION]… [timeout]
              Soteria engine
   
-         symbiotic [OPTION]… [timeout]
+         symbiotic [--max-tests=VAL] [OPTION]… [timeout]
              Symbiotic engine
   
   COMMON OPTIONS
