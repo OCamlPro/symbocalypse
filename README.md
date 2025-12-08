@@ -70,3 +70,11 @@ A folder `results-report` should be available in the working directory with the 
 ```shell-session
 $ symbocalypse diff testcomp-results-XYZ/results testcomp-results-ABC/results
 ```
+
+## Hacking
+
+If you want to run the tests, you should do:
+
+```shell-session
+$ dune runtest test/
+```
