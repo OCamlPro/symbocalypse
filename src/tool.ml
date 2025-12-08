@@ -34,6 +34,55 @@ let mk_soteria () = Soteria
 
 let mk_symbiotic () = Symbiotic
 
+let get_path = function
+  | Owi _ -> "_build/install/default/bin/owi"
+  | Klee -> "tools/klee/bin/klee"
+  | Symbiotic -> "tools/symbiotic/bin/symbiotic"
+  | Soteria -> "_build/install/default/bin/soteria-c"
+
+let help_install = function
+  | Owi _ ->
+    Logs.err (fun m ->
+      m
+        "Make sure you cloned the submodule with: git submodule update --init \
+         --depth 1 tools/owi" );
+    Logs.err (fun m ->
+      m "Then run: dune build @install -p symbocalypse,owi --profile release" )
+  | Klee ->
+    Logs.err (fun m ->
+      m
+        "Make sure you cloned the submodule with: git submodule update --init \
+         --depth 1 tools/klee" )
+  | Symbiotic ->
+    Logs.err (fun m ->
+      m
+        "Make sure you cloned the submodule with: git submodule update --init \
+         --depth 1 tools/symbiotic" )
+  | Soteria ->
+    Logs.err (fun m ->
+      m
+        "Make sure you cloned the submodule with: git submodule update --init \
+         --depth 1 tools/soteria" );
+    Logs.err (fun m ->
+      m
+        "Then run: dune build @install -p symbocalypse,soteria-c --profile \
+         release" )
+
+let is_installed tool =
+  let path_to_tool = get_path tool |> Fpath.v in
+  match Bos.OS.File.exists path_to_tool with
+  | Ok true -> true
+  | Ok false | Error _ -> false
+
+let check_if_available tool =
+  if is_installed tool then Ok ()
+  else begin
+    let path = get_path tool in
+    Logs.err (fun m -> m "Could not find the expected file at %s" path);
+    help_install tool;
+    Error (`Msg "requested tool not found")
+  end
+
 exception Sigchld
 
 let kill_klee_descendants () =
@@ -41,96 +90,94 @@ let kill_klee_descendants () =
   ()
 
 let wait_pid ~pid ~timeout ~tool ~dst_stderr =
-    let did_timeout = ref false in
-    let start_time = Unix.gettimeofday () in
-    begin try
-      Sys.set_signal Sys.sigchld (Signal_handle (fun (_ : int) -> raise Sigchld));
-      Unix.sleepf timeout;
-      did_timeout := true;
-      (* we kill the process group id (pgid) which should be equal to pid *)
-      Unix.kill (-pid) 9;
-      Sys.set_signal Sys.sigchld Signal_default
-    with Sigchld -> ()
-    end;
-    Sys.set_signal Sys.sigchld Signal_default;
-    let ( waited_pid
+  let did_timeout = ref false in
+  let start_time = Unix.gettimeofday () in
+  begin try
+    Sys.set_signal Sys.sigchld (Signal_handle (fun (_ : int) -> raise Sigchld));
+    Unix.sleepf timeout;
+    did_timeout := true;
+    (* we kill the process group id (pgid) which should be equal to pid *)
+    Unix.kill ~-pid 9;
+    Sys.set_signal Sys.sigchld Signal_default
+  with Sigchld -> ()
+  end;
+  Sys.set_signal Sys.sigchld Signal_default;
+  let ( waited_pid
       , status
       , { ExtUnix.Specific.ru_utime = utime
         ; ru_stime = stime
         ; ru_maxrss = maxrss
         } ) =
     ExtUnix.Specific.wait4 [] ~-pid
-    in
-    (* Because symbiotic is leaking klee processes *)
-    kill_klee_descendants ();
-    let end_time = Unix.gettimeofday () in
-    assert (waited_pid = pid);
+  in
+  (* Because symbiotic is leaking klee processes *)
+  kill_klee_descendants ();
+  let end_time = Unix.gettimeofday () in
+  assert (waited_pid = pid);
 
-    let clock = end_time -. start_time in
+  let clock = end_time -. start_time in
 
-    (* Sometimes the clock goes a little bit above the allowed timeout... *)
-    let clock = min clock timeout in
-    let rusage = { Timings.clock; utime; stime; maxrss } in
+  (* Sometimes the clock goes a little bit above the allowed timeout... *)
+  let clock = min clock timeout in
+  let rusage = { Timings.clock; utime; stime; maxrss } in
 
-    if !did_timeout || Float.equal clock timeout then Run_result.Timeout rusage
-    else
-      match status with
-      | WEXITED code -> begin
-        match tool with
-        | Owi _ ->
-          if code = 0 then Nothing rusage
-          else if code = 13 then Reached rusage
-          else Other (rusage, code)
-        | Soteria ->
-          if code = 0 then Nothing rusage
-          else if code = 13 then Reached rusage
-          else Other (rusage, code)
-        | Klee ->
-          if code = 0 then begin
-            let chan = open_in (Fpath.to_string dst_stderr) in
-            let has_found_error = ref false in
-            begin try
-              while true do
-                let line = input_line chan in
-                match
-                  String.split_on_char ' ' line
-                  |> List.filter (fun s -> s <> "")
-                with
-                | [ "KLEE:"; "ERROR:"; _location; "ASSERTION"; "FAIL:"; "0" ] ->
-                  has_found_error := true;
-                  raise Exit
-                | _line -> ()
-              done
-            with End_of_file | Exit -> ()
-            end;
-            close_in chan;
-            if !has_found_error then Reached rusage else Nothing rusage
-          end
-          else Other (rusage, code)
-        | Symbiotic ->
-          if code = 0 then begin
-            match Bos.OS.File.read dst_stderr with
-            | Error (`Msg err) -> failwith err
-            | Ok data -> (
-              let error = Astring.String.find_sub ~sub:"Found ERROR!" data in
-              match error with
-              | Some _ -> Reached rusage
-              | None -> Nothing rusage )
-          end
-          else Other (rusage, code)
-      end
-      | WSIGNALED n -> Signaled (rusage, n)
-      | WSTOPPED n -> Stopped (rusage, n)
+  if !did_timeout || Float.equal clock timeout then Run_result.Timeout rusage
+  else
+    match status with
+    | WEXITED code -> begin
+      match tool with
+      | Owi _ ->
+        if code = 0 then Nothing rusage
+        else if code = 13 then Reached rusage
+        else Other (rusage, code)
+      | Soteria ->
+        if code = 0 then Nothing rusage
+        else if code = 13 then Reached rusage
+        else Other (rusage, code)
+      | Klee ->
+        if code = 0 then begin
+          let chan = open_in (Fpath.to_string dst_stderr) in
+          let has_found_error = ref false in
+          begin try
+            while true do
+              let line = input_line chan in
+              match
+                String.split_on_char ' ' line |> List.filter (fun s -> s <> "")
+              with
+              | [ "KLEE:"; "ERROR:"; _location; "ASSERTION"; "FAIL:"; "0" ] ->
+                has_found_error := true;
+                raise Exit
+              | _line -> ()
+            done
+          with End_of_file | Exit -> ()
+          end;
+          close_in chan;
+          if !has_found_error then Reached rusage else Nothing rusage
+        end
+        else Other (rusage, code)
+      | Symbiotic ->
+        if code = 0 then begin
+          match Bos.OS.File.read dst_stderr with
+          | Error (`Msg err) -> failwith err
+          | Ok data -> (
+            let error = Astring.String.find_sub ~sub:"Found ERROR!" data in
+            match error with Some _ -> Reached rusage | None -> Nothing rusage )
+        end
+        else Other (rusage, code)
+    end
+    | WSIGNALED n -> Signaled (rusage, n)
+    | WSTOPPED n -> Stopped (rusage, n)
 
 let execvp ~output_dir tool file timeout =
   let output_dir = Fpath.(output_dir / to_short_name tool) |> Fpath.to_string in
   let file = Fpath.to_string file in
   let timeout = string_of_int timeout in
+  let path_to_tool = get_path tool in
   let bin, args =
     match tool with
     | Owi { workers; optimisation_level; solver; exploration_strategy } ->
-      ( "owi"
-      , [ "_build/default/owi/src/bin/owi.exe"; "c" ]
+      ( path_to_tool
+      , [ path_to_tool; "c" ]
         @ [ "--unsafe"
           ; "--fail-on-assertion-only"
           ; Fmt.str "-O%d" optimisation_level
@@ -145,9 +192,8 @@ let execvp ~output_dir tool file timeout =
           ; file
           ] )
     | Klee ->
-      let path_to_klee = "tools/klee/bin/klee" in
-      ( path_to_klee
-      , [ path_to_klee
+      ( path_to_tool
+      , [ path_to_tool
         ; "--error-only"
         ; "--max-time"
         ; timeout
@@ -156,17 +202,14 @@ let execvp ~output_dir tool file timeout =
         ; file
         ] )
     | Symbiotic ->
-      let path_to_symbiotic = "tools/symbiotic/bin/symbiotic" in
-      ( path_to_symbiotic
-      , [ path_to_symbiotic
+      ( path_to_tool
+      , [ path_to_tool
         ; "--test-comp"
         ; Fmt.str "--timeout=%s" timeout
         ; "--prp=testcomp/sv-benchmarks/c/properties/coverage-error-call.prp"
         ; file
         ] )
-    | Soteria ->
-      let path_to_soteria = "soteria-c" in
-      (path_to_soteria, [ path_to_soteria; "exec"; file ])
+    | Soteria -> (path_to_tool, [ path_to_tool; "exec"; file ])
   in
   let args = Array.of_list args in
   Unix.execvp bin args
@@ -200,6 +243,7 @@ let fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout =
         | result -> result
       end
     in
+
     loop 10
   in
   Logs.app (fun m -> m "  %a" Run_result.pp result);

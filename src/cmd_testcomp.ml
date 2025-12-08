@@ -168,8 +168,8 @@ let notify_finished runs timeout reference_name output_dir =
        Memory stats (in MB):@\n\
        @\n\
        %a@."
-      reference_name timeout Fpath.pp output_dir Runs.pp_table_results
-      runs Runs.pp_table_statistics runs Runs.pp_table_memory runs
+      reference_name timeout Fpath.pp output_dir Runs.pp_table_results runs
+      Runs.pp_table_statistics runs Runs.pp_table_memory runs
   in
   (* Notify on `ZULIP_WEBHOOK` *)
   match Bos.OS.Env.var "ZULIP_WEBHOOK" with
@@ -208,6 +208,8 @@ let notify_finished runs timeout reference_name output_dir =
     Fmt.epr "Server responded: %s@." (Code.string_of_status status)
 
 let run tool timeout =
+  Logs.debug (fun m -> m "Cmd_testcomp.run");
+  let* () = Tool.check_if_available tool in
   let t = Unix.localtime @@ Unix.gettimeofday () in
   let reference_name = Tool.to_reference_name tool in
   let filename =

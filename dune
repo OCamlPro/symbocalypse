@@ -3,4 +3,4 @@
   (ocamlopt_flags
    (:standard -O3 -unsafe -noassert))))
 
-(dirs :standard \ klee symbiotic pie results-*)
+(dirs :standard \ results-* benchs tools/klee tools/symbiotic)

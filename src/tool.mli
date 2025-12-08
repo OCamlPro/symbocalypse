@@ -17,6 +17,8 @@ val mk_soteria : unit -> t
 
 val mk_symbiotic : unit -> t
 
+val check_if_available : t -> (unit, [ `Msg of string ]) Result.t
+
 val fork_and_run_on_file :
      i:int
   -> fmt:Format.formatter
@@ -24,4 +26,4 @@ val fork_and_run_on_file :
   -> file:Fpath.t
   -> tool:t
   -> timeout:float
-  -> (Run_result.t, Rresult.R.msg) Result.t
+  -> (Run_result.t, [ `Msg of string ]) Result.t

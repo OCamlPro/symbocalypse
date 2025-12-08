@@ -5,7 +5,7 @@
 You first need to install the required dependencies, either through `opam` or `nix`.
 
 ```shell-session
-$ dune build @install --profile release
+$ dune build @install --profile release -p symbocalypse
 $ dune exec -- symbocalypse --help
 ```
 
@@ -19,7 +19,14 @@ $ git submodule update --init --depth 1
 
 ## Running Test-Comp
 
-With a 5 seconds timeout:
+If you intend to run `owi` or `soteria`, you should make sure they are built with symbocalypse:
+
+```shell-session
+$ dune build @install --profile release -p symbocalypse,owi # for Owi
+$ dune build @install --profile release -p symbocalypse,owi # for Soteria
+```
+
+Then, you can run Test-Comp with the tool of your choice. You could for instance run with a five seconds timeout:
 
 ```shell-session
 $ symbocalypse testcomp owi 5
