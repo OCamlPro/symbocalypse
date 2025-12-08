@@ -31,6 +31,9 @@ jobs:
             git checkout ${{ github.ref_name }}
           fi
 
+          git submodule update --init --depth 1 tools/owi
+          git submodule update --init --depth 1 tools/soteria
+
           # Prepare OCaml stuff
           eval "$(opam env)"
           export OPAMCONFIRMLEVEL=unsafe-yes
@@ -40,7 +43,9 @@ jobs:
           # Install system and opam-repo dependencies
           opam install . --depext-only --with-test
           opam install . --deps-only --with-test
+          opam install tools/owi/owi.opam tools/soteria/soteria.opam tools/soteria/soteria-c.opam --depext-only
+          opam install tools/owi/owi.opam tools/soteria/soteria.opam tools/soteria/soteria-c.opam --deps-only
 
           # Build and test
-          dune build @install -p symbocalypse
+          dune build @install -p symbocalypse,owi,soteria-c
           dune runtest test/
