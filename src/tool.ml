@@ -217,7 +217,19 @@ let execvp ~output_dir tool file timeout =
         ; "--prp=testcomp/sv-benchmarks/c/properties/coverage-error-call.prp"
         ; file
         ] )
-    | Soteria -> (path_to_tool, [ path_to_tool; "exec"; file ])
+    | Soteria ->
+      ( path_to_tool
+      , [ path_to_tool
+        ; "exec"
+        ; file
+        ; "--testcomp"
+        ; "--step-fuel"
+        ; "1500"
+        ; "--branch-fuel"
+        ; "infinite"
+        ; "--alloc-cannot-fail"
+        ; "--ignore-ub"
+        ] )
   in
   let args = Array.of_list args in
   Unix.execvp bin args
