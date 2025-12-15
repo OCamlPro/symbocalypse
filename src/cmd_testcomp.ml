@@ -160,7 +160,19 @@ let notify_finished runs timeout reference_name output_dir =
        @\n\
        %a@\n\
        @\n\
-       Time stats (in seconds):@\n\
+       Wall clock stats (in seconds):@\n\
+       @\n\
+       %a@\n\
+       @\n\
+       User time stats (in seconds):@\n\
+       @\n\
+       %a@\n\
+       @\n\
+       System time stats (in seconds):@\n\
+       @\n\
+       %a@\n\
+       @\n\
+       Parallelism stats (ratio of parallelism / wall clock):@\n\
        @\n\
        %a@\n\
        @\n\
@@ -168,7 +180,9 @@ let notify_finished runs timeout reference_name output_dir =
        @\n\
        %a@."
       reference_name timeout Fpath.pp output_dir Runs.pp_table_results runs
-      Runs.pp_table_statistics runs Runs.pp_table_memory runs
+      Runs.pp_table_wall_clock runs Runs.pp_table_user_time runs
+      Runs.pp_table_system_time runs Runs.pp_table_parallelism_ratio runs
+      Runs.pp_table_memory runs
   in
   (* Notify on `ZULIP_WEBHOOK` *)
   match Bos.OS.Env.var "ZULIP_WEBHOOK" with

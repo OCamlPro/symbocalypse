@@ -49,7 +49,7 @@ val mean_stime : t -> float
 (* FIXME: This is likely to overflow? *)
 val sum_maxrss : t -> int64
 
-val mean_maxrss : t -> float
+val mean_maxrss : t -> int64
 
 val to_distribution : max_time:int -> t -> float list
 
@@ -57,7 +57,13 @@ val pp_quick_results : t Fmt.t
 
 val pp_table_results : t Fmt.t
 
-val pp_table_statistics : t Fmt.t
+val pp_table_wall_clock : t Fmt.t
+
+val pp_table_user_time : t Fmt.t
+
+val pp_table_system_time : t Fmt.t
+
+val pp_table_parallelism_ratio : t Fmt.t
 
 val pp_table_memory : t Fmt.t
 

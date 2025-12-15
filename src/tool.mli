@@ -7,10 +7,11 @@ val to_reference_name : t -> string
 val tool_path_env_var_name : string
 
 val mk_owi :
-     workers:int
+     bench:bool
+  -> exploration_strategy:string
   -> optimisation_level:int
   -> solver:Smtml.Solver_type.t
-  -> exploration_strategy:string
+  -> workers:int
   -> t
 
 val mk_klee : unit -> t
