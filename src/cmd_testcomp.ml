@@ -172,10 +172,8 @@ let notify_finished runs timeout reference_name output_dir workers =
        @\n\
        %a@\n\
        @\n\
-       Parallelism stats (ratio of parallelism / wall clock), the number is \
-       the ratio, the percentage is the efficiency of parallelism achieved for \
-       the number of available cores (not on the system, but passed to the \
-       tool):@\n\
+       Parallelism stats (ratio of parallelism / wall clock) (percentage is \
+       efficiency related to number of workers)(runs < 1s filtered out) :@\n\
        @\n\
        %a@\n\
        @\n\

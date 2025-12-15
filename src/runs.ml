@@ -196,12 +196,18 @@ let pp_table_user_time fmt results =
 let pp_table_parallelism_ratio ~workers fmt results =
   let workers = float_of_int workers in
   let ratios =
-    List.map
+    List.filter_map
       (fun run ->
         let wall_clock_time = Run.clock run in
         let user_time = Run.utime run in
-        (* TODO: make a version where we add user_time+system_time ? *)
-        user_time /. wall_clock_time )
+        let system_time = Run.stime run in
+
+        if wall_clock_time < 1. then None
+        else
+          let ratio = (user_time +. system_time) /. wall_clock_time in
+          (* ignore startup (everything before interpreter loop ) overhead *)
+          let ratio = max 1. ratio in
+          Some ratio )
       results
   in
   let geometric_mean = geometric_mean_floats ratios in
