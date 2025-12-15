@@ -124,7 +124,7 @@ let runs tool timeout output_dir max_tests =
     files;
   !results
 
-let notify_finished runs timeout reference_name output_dir =
+let notify_finished runs timeout reference_name output_dir workers =
   let open Cohttp in
   let open Cohttp_lwt_unix in
   let headers =
@@ -172,7 +172,10 @@ let notify_finished runs timeout reference_name output_dir =
        @\n\
        %a@\n\
        @\n\
-       Parallelism stats (ratio of parallelism / wall clock):@\n\
+       Parallelism stats (ratio of parallelism / wall clock), the number is \
+       the ratio, the percentage is the efficiency of parallelism achieved for \
+       the number of available cores (not on the system, but passed to the \
+       tool):@\n\
        @\n\
        %a@\n\
        @\n\
@@ -181,8 +184,9 @@ let notify_finished runs timeout reference_name output_dir =
        %a@."
       reference_name timeout Fpath.pp output_dir Runs.pp_table_results runs
       Runs.pp_table_wall_clock runs Runs.pp_table_user_time runs
-      Runs.pp_table_system_time runs Runs.pp_table_parallelism_ratio runs
-      Runs.pp_table_memory runs
+      Runs.pp_table_system_time runs
+      (Runs.pp_table_parallelism_ratio ~workers)
+      runs Runs.pp_table_memory runs
   in
   (* Notify on `ZULIP_WEBHOOK` *)
   match Bos.OS.Env.var "ZULIP_WEBHOOK" with
@@ -238,5 +242,6 @@ let run tool timeout max_tests =
   in
   let runs = runs tool timeout output_dir max_tests in
   let runs = ok_or_fail runs in
-  notify_finished runs timeout reference_name output_dir;
+  let workers = Tool.get_number_of_workers tool in
+  notify_finished runs timeout reference_name output_dir workers;
   Gen.full_report runs output_dir reference_name

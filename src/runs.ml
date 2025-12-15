@@ -193,7 +193,8 @@ let pp_table_user_time fmt results =
      | %.2G | %.2G | %.2G | %.2G | %.2G |@\n"
     total mean median min max
 
-let pp_table_parallelism_ratio fmt results =
+let pp_table_parallelism_ratio ~workers fmt results =
+  let workers = float_of_int workers in
   let ratios =
     List.map
       (fun run ->
@@ -204,14 +205,19 @@ let pp_table_parallelism_ratio fmt results =
       results
   in
   let geometric_mean = geometric_mean_floats ratios in
+  let geometric_mean_efficiency = geometric_mean /. workers *. 100. in
   let median = median_floats ratios in
+  let median_efficiency = median /. workers *. 100. in
   let min = min_floats ratios in
+  let min_efficiency = min /. workers *. 100. in
   let max = max_floats ratios in
+  let max_efficiency = min /. workers *. 100. in
   Fmt.pf fmt
     "| Mean (geo) | Median | Min | Max |@\n\
      |:----:|:------:|:---:|:---:|@\n\
-     | %.2G | %.2G | %.2G | %.2G |@\n"
-    geometric_mean median min max
+     | %.2G (%.2G%%) | %.2G (%.2G%%) | %.2G (%.2G%%) | %.2G (%.2G%%) |@\n"
+    geometric_mean geometric_mean_efficiency median median_efficiency min
+    min_efficiency max max_efficiency
 
 let pp_table_system_time fmt results =
   let total = sum_stime results in

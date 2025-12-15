@@ -63,7 +63,7 @@ val pp_table_user_time : t Fmt.t
 
 val pp_table_system_time : t Fmt.t
 
-val pp_table_parallelism_ratio : t Fmt.t
+val pp_table_parallelism_ratio : workers:int -> t Fmt.t
 
 val pp_table_memory : t Fmt.t
 

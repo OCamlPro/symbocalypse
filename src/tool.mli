@@ -4,6 +4,8 @@ val to_short_name : t -> string
 
 val to_reference_name : t -> string
 
+val get_number_of_workers : t -> int
+
 val tool_path_env_var_name : string
 
 val mk_owi :

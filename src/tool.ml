@@ -27,6 +27,10 @@ let to_reference_name = function
   | Symbiotic -> "symbiotic"
   | Soteria -> "soteria"
 
+let get_number_of_workers = function
+  | Owi { workers; _ } -> workers
+  | Klee | Symbiotic | Soteria -> 1
+
 let mk_owi ~bench ~exploration_strategy ~optimisation_level ~solver ~workers =
   Owi { bench; workers; optimisation_level; solver; exploration_strategy }
 
@@ -201,9 +205,9 @@ let execvp ~output_dir tool file timeout =
         ; "--exploration"
         ; exploration_strategy
         ; "-q"
-        ; (if bench then "--bench" else "")
-        ; file
-        ] )
+        ]
+        @ (if bench then [ "--bench" ] else [])
+        @ [ file ] )
     | Klee ->
       ( path_to_tool
       , [ path_to_tool
