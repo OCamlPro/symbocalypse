@@ -211,7 +211,7 @@ let pp_table_parallelism_ratio ~workers fmt results =
   let min = min_floats ratios in
   let min_efficiency = min /. workers *. 100. in
   let max = max_floats ratios in
-  let max_efficiency = min /. workers *. 100. in
+  let max_efficiency = max /. workers *. 100. in
   Fmt.pf fmt
     "| Mean (geo) | Median | Min | Max |@\n\
      |:----:|:------:|:---:|:---:|@\n\
