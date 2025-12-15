@@ -51,6 +51,9 @@ let owi =
     in
     let doc = {|exploration strategy to use ("fifo", "lifo" or "random")|} in
     Arg.(value & opt exploration_conv "random" & info [ "exploration" ] ~doc)
+  and+ bench =
+    let doc = "enable benchmarks" in
+    Arg.(value & flag & info [ "bench" ] ~doc ~docs:sdocs)
   and+ optimisation_level =
     let doc = "specify which optimization level to use" in
     Arg.(value & opt int 1 & info [ "O" ] ~doc)
@@ -82,7 +85,7 @@ let owi =
       & opt int Processor.Query.core_count
       & info [ "workers"; "w" ] ~doc ~absent:"n" )
   in
-  Tool.mk_owi ~workers ~optimisation_level ~solver ~exploration_strategy
+  Tool.mk_owi ~bench ~exploration_strategy ~optimisation_level ~solver ~workers
 
 let result_file =
   let doc = "result file" in

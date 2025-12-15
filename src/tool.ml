@@ -4,6 +4,7 @@ type t =
       ; workers : int
       ; solver : Smtml.Solver_type.t
       ; exploration_strategy : string
+      ; bench : bool
       }
   | Klee
   | Symbiotic
@@ -18,15 +19,16 @@ let to_short_name = function
   | Soteria -> "soteria"
 
 let to_reference_name = function
-  | Owi { workers; optimisation_level; solver; exploration_strategy } ->
+  | Owi { workers; optimisation_level; solver; exploration_strategy; bench = _ }
+    ->
     Fmt.str "owi_w%d_O%d_s%a_%s" workers optimisation_level Smtml.Solver_type.pp
       solver exploration_strategy
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
   | Soteria -> "soteria"
 
-let mk_owi ~workers ~optimisation_level ~solver ~exploration_strategy =
-  Owi { workers; optimisation_level; solver; exploration_strategy }
+let mk_owi ~bench ~exploration_strategy ~optimisation_level ~solver ~workers =
+  Owi { bench; workers; optimisation_level; solver; exploration_strategy }
 
 let mk_klee () = Klee
 
@@ -183,22 +185,25 @@ let execvp ~output_dir tool file timeout =
   let path_to_tool = get_path tool in
   let bin, args =
     match tool with
-    | Owi { workers; optimisation_level; solver; exploration_strategy } ->
+    | Owi { bench; workers; optimisation_level; solver; exploration_strategy }
+      ->
       ( path_to_tool
-      , [ path_to_tool; "c" ]
-        @ [ "--unsafe"
-          ; "--fail-on-assertion-only"
-          ; Fmt.str "-O%d" optimisation_level
-          ; Fmt.str "-w%d" workers
-          ; "--workspace"
-          ; output_dir
-          ; "--solver"
-          ; Fmt.str "%a" Smtml.Solver_type.pp solver
-          ; "--exploration"
-          ; exploration_strategy
-          ; "-q"
-          ; file
-          ] )
+      , [ path_to_tool
+        ; "c"
+        ; "--unsafe"
+        ; "--fail-on-assertion-only"
+        ; Fmt.str "-O%d" optimisation_level
+        ; Fmt.str "-w%d" workers
+        ; "--workspace"
+        ; output_dir
+        ; "--solver"
+        ; Fmt.str "%a" Smtml.Solver_type.pp solver
+        ; "--exploration"
+        ; exploration_strategy
+        ; "-q"
+        ; (if bench then "--bench" else "")
+        ; file
+        ] )
     | Klee ->
       ( path_to_tool
       , [ path_to_tool
