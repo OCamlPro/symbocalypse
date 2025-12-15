@@ -75,9 +75,9 @@ let min_floats l = List.fold_left Float.min Float.max_float l
 
 let min_int64s l = List.fold_left Int64.min Int64.max_int l
 
-let max_floats l = List.fold_left Float.min 0. l
+let max_floats l = List.fold_left Float.max 0. l
 
-let max_ints64 l = List.fold_left Int64.min 0L l
+let max_ints64 l = List.fold_left Int64.max 0L l
 
 (* clock *)
 
