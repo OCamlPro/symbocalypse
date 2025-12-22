@@ -43,14 +43,22 @@ let owi =
     let exploration_conv =
       let of_string s =
         match String.lowercase_ascii s with
-        | ("fifo" | "lifo" | "random" | "smart") as s -> Ok s
+        | ( "fifo" | "lifo" | "random" | "random-unseen-then-random" | "rarity"
+          | "hot-path-penalty" | "rarity-aging" | "rarity-depth-aging"
+          | "rarity-depth-loop-aging" ) as s ->
+          Ok s
         | _ ->
-          Fmt.error_msg {|Expected "fifo", "lifo" or "random" but got "%s"|} s
+          Fmt.error_msg
+            {|Expected "fifo", "lifo", "random", "random-unseen-then-random", "rarity", "hot-path-penalty", "rarity-aging", "rarity-depth-aging", or "rarity-depth-loop-aging", "rarity-depth-loop-aging-random", "rarity-depth-loop-aging-random" but got "%s"|}
+            s
       in
       Arg.conv (of_string, Fmt.string)
     in
     let doc = {|exploration strategy to use ("fifo", "lifo" or "random")|} in
-    Arg.(value & opt exploration_conv "random" & info [ "exploration" ] ~doc)
+    Arg.(
+      value
+      & opt exploration_conv "rarity-depth-loop-aging-random"
+      & info [ "exploration" ] ~doc )
   and+ bench =
     let doc = "enable benchmarks" in
     Arg.(value & flag & info [ "bench" ] ~doc ~docs:sdocs)
