@@ -83,7 +83,7 @@ let max_ints64 l = List.fold_left Int64.max 0L l
 
 let sum_clock runs = List.map Run.clock runs |> sum_floats
 
-let mean_clock runs = List.map Run.clock runs |> sum_floats
+let mean_clock runs = List.map Run.clock runs |> mean_floats
 
 let median_clock runs = List.map Run.clock runs |> median_floats
 
@@ -99,7 +99,7 @@ let mean_utime runs = List.map Run.utime runs |> mean_floats
 
 let median_utime runs = List.map Run.utime runs |> median_floats
 
-let min_utime runs = List.map Run.utime runs |> median_floats
+let min_utime runs = List.map Run.utime runs |> min_floats
 
 let max_utime runs = List.map Run.utime runs |> max_floats
 
@@ -111,7 +111,7 @@ let mean_stime runs = List.map Run.stime runs |> mean_floats
 
 let median_stime runs = List.map Run.stime runs |> median_floats
 
-let min_stime runs = List.map Run.stime runs |> median_floats
+let min_stime runs = List.map Run.stime runs |> min_floats
 
 let max_stime runs = List.map Run.stime runs |> max_floats
 
