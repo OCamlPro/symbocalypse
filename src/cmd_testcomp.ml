@@ -3,18 +3,7 @@ module Unix = struct
   include Bos.OS.U
 end
 
-let ( let* ) o f = match o with Ok v -> f v | Error _ as e -> e
-
-let ( let+ ) o f = match o with Ok v -> Ok (f v) | Error _ as e -> e
-
-let ok_or_fail = function
-  | Error (`Msg m) ->
-    Fmt.epr "ERROR: %s@\n" m;
-    exit 1
-  | Error (`Unix e) ->
-    Fmt.epr "ERROR: %s@\n" (Unix.error_message e);
-    exit 1
-  | Ok x -> x
+open Utils.Syntax
 
 let object_field (yml : Yaml.value) (field : string) =
   match yml with
@@ -114,7 +103,7 @@ let runs tool timeout output_dir max_tests =
         pp "%a@\n  @[<v>" (Run.pp_header (min len max_tests)) (i, file);
         let result =
           Tool.fork_and_run_on_file ~i ~fmt ~output_dir ~file ~tool ~timeout
-          |> ok_or_fail
+          |> Utils.ok_or_fail
         in
         let result = { Run.i; file; res = result } in
         results := Runs.add result !results;
@@ -236,10 +225,10 @@ let run tool timeout max_tests =
   in
   let output_dir = Fpath.v filename in
   let _ : bool =
-    Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> ok_or_fail
+    Bos.OS.Dir.create ~path:true ~mode:0o755 output_dir |> Utils.ok_or_fail
   in
   let runs = runs tool timeout output_dir max_tests in
-  let runs = ok_or_fail runs in
+  let runs = Utils.ok_or_fail runs in
   let workers = Tool.get_number_of_workers tool in
   notify_finished runs timeout reference_name output_dir workers;
-  Gen.full_report runs output_dir reference_name
+  Utils.gen_full_report runs output_dir reference_name

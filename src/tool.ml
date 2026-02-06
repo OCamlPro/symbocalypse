@@ -1,16 +1,19 @@
+open Utils.Syntax
+
 type t =
   | Owi of
-      { optimisation_level : int
+      { mode : string
+      ; optimisation_level : int
       ; workers : int
       ; solver : Smtml.Solver_type.t
       ; exploration_strategy : string
+      ; fail_on_assertion_only : bool
+      ; entry_point : string option
       ; bench : bool
       }
   | Klee
   | Symbiotic
   | Soteria
-
-let ( let+ ) o f = match o with Ok v -> Ok (f v) | Error _ as e -> e
 
 let to_short_name = function
   | Owi _ -> "owi"
@@ -31,8 +34,18 @@ let get_number_of_workers = function
   | Owi { workers; _ } -> workers
   | Klee | Symbiotic | Soteria -> 1
 
-let mk_owi ~bench ~exploration_strategy ~optimisation_level ~solver ~workers =
-  Owi { bench; workers; optimisation_level; solver; exploration_strategy }
+let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
+  ~workers ~fail_on_assertion_only ~entry_point =
+  Owi
+    { mode
+    ; bench
+    ; workers
+    ; optimisation_level
+    ; solver
+    ; exploration_strategy
+    ; fail_on_assertion_only
+    ; entry_point
+    }
 
 let mk_klee () = Klee
 
@@ -187,26 +200,29 @@ let execvp ~output_dir tool file timeout =
   let file = Fpath.to_string file in
   let timeout = string_of_int timeout in
   let path_to_tool = get_path tool in
+  let tool_option cond value = if cond then [ value ] else [] in
   let bin, args =
     match tool with
-    | Owi { bench; workers; optimisation_level; solver; exploration_strategy }
-      ->
+    | Owi opts ->
       ( path_to_tool
       , [ path_to_tool
-        ; "c"
+        ; opts.mode
         ; "--unsafe"
-        ; "--fail-on-assertion-only"
-        ; Fmt.str "-O%d" optimisation_level
-        ; Fmt.str "-w%d" workers
+        ; Fmt.str "-w%d" opts.workers
         ; "--workspace"
         ; output_dir
-        ; "--solver"
-        ; Fmt.str "%a" Smtml.Solver_type.pp solver
         ; "--exploration"
-        ; exploration_strategy
+        ; opts.exploration_strategy
         ; "-q"
         ]
-        @ (if bench then [ "--bench" ] else [])
+        @ tool_option opts.bench "--bench"
+        @ tool_option opts.fail_on_assertion_only "--fail-on-assertion-only"
+        @ tool_option
+            (opts.mode = "c" || opts.mode = "c++")
+            (Fmt.str "-O%d" opts.optimisation_level)
+        @ ( match opts.entry_point with
+          | Some ep -> [ "--entry-point"; ep ]
+          | None -> [] )
         @ [ file ] )
     | Klee ->
       ( path_to_tool
@@ -240,6 +256,7 @@ let execvp ~output_dir tool file timeout =
         ; "--ignore-ub"
         ] )
   in
+  Logs.app (fun m -> m "  Executing: %s %a" bin Fmt.(Dump.list string) args);
   let args = Array.of_list args in
   Unix.execvp bin args
 

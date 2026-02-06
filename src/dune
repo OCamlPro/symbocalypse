@@ -1,12 +1,12 @@
 (executable
  (public_name symbocalypse)
  (modules
+  cmd_wasm_btree
   cmd_diff
   cmd_report
   cmd_testcomp
   cmd_version
   color
-  gen
   html
   parse
   run
@@ -16,7 +16,8 @@
   testcomp_whitelist
   time_distribution
   timings
-  tool)
+  tool
+  utils)
  (libraries
   bos
   cmdliner

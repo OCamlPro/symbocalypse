@@ -168,7 +168,9 @@ let testcomp_owi_cmd =
   and+ timeout
   and+ max_tests
   and+ owi in
-  Cmd_testcomp.run owi timeout max_tests
+  Cmd_testcomp.run
+    (owi ~fail_on_assertion_only:true ~entry_point:None ~mode:"c")
+    timeout max_tests
 
 (* symbocalypse testcomp soteria *)
 let testcomp_soteria_info =
@@ -210,6 +212,30 @@ let testcomp_cmd =
     ; Cmd.v testcomp_symbiotic_info testcomp_symbiotic_cmd
     ]
 
+(* symbocalypse wasm-btree owi *)
+let wasm_btree_owi_info =
+  let doc = "Run Owi on wams-btree" in
+  let man = shared_man in
+  Cmd.info "owi" ~version ~doc ~sdocs ~man
+
+let wasm_btree_owi_cmd =
+  let+ () = setup_log
+  and+ timeout
+  and+ max_tests
+  and+ owi in
+  Cmd_wasm_btree.run
+    (owi ~fail_on_assertion_only:false ~entry_point:(Some "main") ~mode:"sym")
+    timeout max_tests
+
+(* symbocalypse wasm-btree *)
+let wasm_btree_cmd =
+  let info =
+    let doc = "Run benchmarks on the WebAssembly B-Tree implementation" in
+    let man = shared_man in
+    Cmd.info "wasm-btree" ~version ~doc ~sdocs ~man
+  in
+  Cmd.group info [ Cmd.v wasm_btree_owi_info wasm_btree_owi_cmd ]
+
 (* symbocalypse version *)
 let version_info =
   let doc = "Print some version informations" in
@@ -235,6 +261,7 @@ let cli =
     [ Cmd.v diff_info diff_cmd
     ; Cmd.v report_info report_cmd
     ; testcomp_cmd
+    ; wasm_btree_cmd
     ; Cmd.v version_info version_cmd
     ]
 

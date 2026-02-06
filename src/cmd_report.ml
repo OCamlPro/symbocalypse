@@ -9,4 +9,4 @@ let run result_file =
   let old_output_dir = output_dir in
   Cmd_testcomp.notify_finished runs timeout reference_name old_output_dir
     workers;
-  Gen.full_report runs output_dir "unknown_tool"
+  Utils.gen_full_report runs output_dir "unknown_tool"

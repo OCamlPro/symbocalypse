@@ -1,6 +1,4 @@
-let ( let* ) o f = match o with Ok v -> f v | Error _ as e -> e
-
-let ( let+ ) o f = match o with Ok v -> Ok (f v) | Error _ as e -> e
+open Utils.Syntax
 
 let from_file file =
   let file = Fpath.to_string file in
