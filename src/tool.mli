@@ -9,11 +9,14 @@ val get_number_of_workers : t -> int
 val tool_path_env_var_name : string
 
 val mk_owi :
-     bench:bool
+     mode:string
+  -> bench:bool
   -> exploration_strategy:string
   -> optimisation_level:int
   -> solver:Smtml.Solver_type.t
   -> workers:int
+  -> fail_on_assertion_only:bool
+  -> entry_point:string option
   -> t
 
 val mk_klee : unit -> t
@@ -31,4 +34,4 @@ val fork_and_run_on_file :
   -> file:Fpath.t
   -> tool:t
   -> timeout:float
-  -> (Run_result.t, [ `Msg of string ]) Result.t
+  -> (Run_result.t, [> `Msg of string ]) result
