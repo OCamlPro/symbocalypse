@@ -22,10 +22,10 @@ let to_short_name = function
   | Soteria -> "soteria"
 
 let to_reference_name = function
-  | Owi { workers; optimisation_level; solver; exploration_strategy; bench = _ }
+  | Owi { mode; workers; optimisation_level; solver; exploration_strategy; _ }
     ->
-    Fmt.str "owi_w%d_O%d_s%a_%s" workers optimisation_level Smtml.Solver_type.pp
-      solver exploration_strategy
+    Fmt.str "owi_%s_w%d_O%d_s%a_%s" mode workers optimisation_level
+      Smtml.Solver_type.pp solver exploration_strategy
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
   | Soteria -> "soteria"

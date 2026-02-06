@@ -1,6 +1,7 @@
 (executable
  (public_name symbocalypse)
  (modules
+  bench
   cmd_wasm_btree
   cmd_diff
   cmd_report

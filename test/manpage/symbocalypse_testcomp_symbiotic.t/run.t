@@ -3,8 +3,7 @@
          symbocalypse-testcomp-symbiotic - Symbiotic engine
   
   SYNOPSIS
-         symbocalypse testcomp symbiotic [--max-tests=VAL] [OPTION]…
-         [timeout]
+         symbocalypse testcomp symbiotic [--max-tests=VAL] [OPTION]… [timeout]
   
   OPTIONS
          --max-tests=VAL (absent=100000)

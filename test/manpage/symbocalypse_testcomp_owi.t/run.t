@@ -6,7 +6,7 @@
          symbocalypse testcomp owi [OPTION]… [timeout]
   
   OPTIONS
-         --exploration=VAL (absent=random)
+         --exploration=VAL (absent=rarity-depth-loop-aging-random)
              exploration strategy to use ("fifo", "lifo" or "random")
   
          --max-tests=VAL (absent=100000)
@@ -24,6 +24,9 @@
              of physical cores.
   
   COMMON OPTIONS
+         --bench
+             enable benchmarks
+  
          --color=WHEN (absent=auto)
              Colorize the output. WHEN must be one of auto, always or never.
   

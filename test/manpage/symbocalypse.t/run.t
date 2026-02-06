@@ -18,6 +18,9 @@
          version [OPTION]…
              Print some version informations
   
+         wasm-btree COMMAND …
+             Run benchmarks on the WebAssembly B-Tree implementation
+  
   COMMON OPTIONS
          --help[=FMT] (default=auto)
              Show this help in format FMT. The value FMT must be one of auto,
