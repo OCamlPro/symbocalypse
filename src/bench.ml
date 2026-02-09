@@ -130,7 +130,7 @@ let notify_finished runs timeout reference_name output_dir workers =
     let status = Response.status result in
     Fmt.epr "Server responded: %s@." (Code.string_of_status status)
 
-let run tool timeout max_tests files =
+let run tool timeout max_tests files bench_suite =
   let* () =
     match Bos.OS.Env.var Tool.tool_path_env_var_name with
     | None -> Tool.check_if_available tool
@@ -139,8 +139,9 @@ let run tool timeout max_tests files =
   let t = Unix.localtime @@ Unix.gettimeofday () in
   let reference_name = Tool.to_reference_name tool in
   let filename =
-    Fmt.str "results-testcomp-%s-%d-%02d-%02d_%02dh%02dm%02ds/" reference_name
-      (1900 + t.tm_year) (1 + t.tm_mon) t.tm_mday t.tm_hour t.tm_min t.tm_sec
+    Fmt.str "results-%s-%s-%d-%02d-%02d_%02dh%02dm%02ds/" bench_suite
+      reference_name (1900 + t.tm_year) (1 + t.tm_mon) t.tm_mday t.tm_hour
+      t.tm_min t.tm_sec
   in
   let output_dir = Fpath.v filename in
   let _ : bool =

@@ -87,4 +87,4 @@ let files () =
 
 let run tool timeout max_test =
   let files = Utils.ok_or_fail (files ()) in
-  Bench.run tool timeout max_test files
+  Bench.run tool timeout max_test files "testcomp"
