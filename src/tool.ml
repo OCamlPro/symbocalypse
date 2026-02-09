@@ -10,6 +10,7 @@ type t =
       ; fail_on_assertion_only : bool
       ; entry_point : string option
       ; bench : bool
+      ; output_workspace : bool
       }
   | Klee
   | Symbiotic
@@ -35,12 +36,13 @@ let get_number_of_workers = function
   | Klee | Symbiotic | Soteria -> 1
 
 let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
-  ~workers ~fail_on_assertion_only ~entry_point =
+  ~workers ~fail_on_assertion_only ~entry_point ~output_workspace =
   Owi
     { mode
     ; bench
     ; workers
     ; optimisation_level
+    ; output_workspace
     ; solver
     ; exploration_strategy
     ; fail_on_assertion_only
@@ -209,14 +211,13 @@ let execvp ~output_dir tool file timeout =
         ; opts.mode
         ; "--unsafe"
         ; Fmt.str "-w%d" opts.workers
-        ; "--workspace"
-        ; output_dir
         ; "--exploration"
         ; opts.exploration_strategy
         ; "-q"
         ]
         @ tool_option opts.bench "--bench"
         @ tool_option opts.fail_on_assertion_only "--fail-on-assertion-only"
+        @ (if opts.output_workspace then [ "--workpace"; output_dir ] else [])
         @ tool_option
             (opts.mode = "c" || opts.mode = "c++")
             (Fmt.str "-O%d" opts.optimisation_level)
