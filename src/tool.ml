@@ -8,6 +8,7 @@ type t =
       ; solver : Smtml.Solver_type.t
       ; exploration_strategy : string
       ; fail_on_assertion_only : bool
+      ; no_stop_at_failure : bool
       ; entry_point : string option
       ; bench : bool
       ; output_workspace : bool
@@ -36,7 +37,8 @@ let get_number_of_workers = function
   | Klee | Symbiotic | Soteria -> 1
 
 let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
-  ~workers ~fail_on_assertion_only ~entry_point ~output_workspace =
+  ~workers ~fail_on_assertion_only ~entry_point ~output_workspace
+  ~no_stop_at_failure =
   Owi
     { mode
     ; bench
@@ -46,6 +48,7 @@ let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
     ; solver
     ; exploration_strategy
     ; fail_on_assertion_only
+    ; no_stop_at_failure
     ; entry_point
     }
 
@@ -215,6 +218,7 @@ let execvp ~output_dir tool file timeout =
         ; opts.exploration_strategy
         ; "-q"
         ]
+        @ tool_option opts.no_stop_at_failure "--no-stop-at-failure"
         @ tool_option opts.bench "--bench"
         @ tool_option opts.fail_on_assertion_only "--fail-on-assertion-only"
         @ (if opts.output_workspace then [ "--workpace"; output_dir ] else [])

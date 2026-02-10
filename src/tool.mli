@@ -18,6 +18,7 @@ val mk_owi :
   -> fail_on_assertion_only:bool
   -> entry_point:string option
   -> output_workspace:bool
+  -> no_stop_at_failure:bool
   -> t
 
 val mk_klee : unit -> t

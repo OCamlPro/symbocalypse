@@ -170,7 +170,7 @@ let testcomp_owi_cmd =
   and+ owi in
   Cmd_testcomp.run
     (owi ~fail_on_assertion_only:true ~entry_point:None ~mode:"c"
-       ~output_workspace:true )
+       ~output_workspace:true ~no_stop_at_failure:false )
     timeout max_tests
 
 (* symbocalypse testcomp soteria *)
@@ -226,7 +226,7 @@ let wasm_btree_owi_cmd =
   and+ owi in
   Cmd_wasm_btree.run
     (owi ~fail_on_assertion_only:false ~entry_point:(Some "main") ~mode:"sym"
-       ~output_workspace:false )
+       ~output_workspace:false ~no_stop_at_failure:true )
     timeout max_tests
 
 (* symbocalypse wasm-btree *)
