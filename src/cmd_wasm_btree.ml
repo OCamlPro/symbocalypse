@@ -1,6 +1,6 @@
 let root = Fpath.v "benchs/btree"
 
-let problems_root = Fpath.(root / "btree" / "native")
+let problems_root = Fpath.(root / "btree" / "with_ffi")
 
 let files () =
   Bos.OS.Dir.fold_contents ~dotfiles:false ~elements:`Files ~traverse:`Any

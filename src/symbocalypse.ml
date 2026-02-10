@@ -225,7 +225,7 @@ let wasm_btree_owi_cmd =
   and+ max_tests
   and+ owi in
   Cmd_wasm_btree.run
-    (owi ~fail_on_assertion_only:false ~entry_point:(Some "main") ~mode:"sym"
+    (owi ~fail_on_assertion_only:false ~entry_point:None ~mode:"sym"
        ~output_workspace:false ~no_stop_at_failure:true )
     timeout max_tests
 
