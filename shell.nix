@@ -1,44 +1,20 @@
-{ pkgs ? import (builtins.fetchTarball {
-    url = "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz";
-  }) {}
-}:
+let
+  pkgs = import (fetchTarball "https://github.com/NixOS/nixpkgs/archive/nixos-unstable.tar.gz") {};
+  ocamlPackages = pkgs.ocaml-ng.ocamlPackages_5_4;
+in
 
 let
-  extunix = pkgs.ocamlPackages.buildDunePackage (finalAttrs: {
-    pname = "extunix";
-    version = "0.4.4";
-
-    src = pkgs.fetchFromGitHub {
-      owner = "ygrek";
-      repo = "extunix";
-      tag = "v${finalAttrs.version}";
-      hash = "sha256-7wJDGv19etkDHRwwQ+WONtJswxNMjr2Q2Vhis4WgFek=";
-    };
-
-    postPatch = ''
-      substituteInPlace src/dune --replace 'libraries unix bigarray bytes' 'libraries unix bigarray'
-    '';
-
-    nativeBuildInputs = with pkgs.ocamlPackages; [
-      dune-configurator
-      ppxlib
-    ];
-
-    propagatedBuildInputs = with pkgs.ocamlPackages; [
-      dune-configurator
-      gnuplot
-      ppxlib
-    ];
-
-  });
-  owiSubShell = import ./tools/owi/shell.nix { inherit pkgs; };
-  soteriaSubShell = import ./tools/soteria/shell.nix { inherit pkgs; };
+  owiSubShell = import ./tools/owi/shell.nix {} ;
+  # soteriaSubShell = import ./tools/soteria/shell.nix ;
 in
 
 pkgs.mkShell {
   dontDetectOcamlConflicts = true;
-  inputsFrom = [ owiSubShell soteriaSubShell ];
-  nativeBuildInputs = with pkgs.ocamlPackages; [
+  inputsFrom = [
+    owiSubShell
+    # soteriaSubShell
+  ];
+  nativeBuildInputs = with ocamlPackages; [
     dune_3
     findlib
     merlin
@@ -48,10 +24,13 @@ pkgs.mkShell {
     pkgs.python3 # KLEE
     pkgs.z3 # soteria-c
   ];
-  propagatedBuildInputs = with pkgs.ocamlPackages; [
+  propagatedBuildInputs = with ocamlPackages; [
     cmdliner
     cohttp-lwt-unix
     extunix
+    gnuplot
+    logs
+    lwt
     processor
     rusage
     smtml
