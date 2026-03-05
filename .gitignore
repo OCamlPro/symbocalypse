@@ -1,4 +1,5 @@
 _build/
 results-testcomp-*
+results-wasm-btree-*
 *.install
 results-report
