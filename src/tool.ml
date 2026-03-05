@@ -221,7 +221,7 @@ let execvp ~output_dir tool file timeout =
         @ tool_option opts.no_stop_at_failure "--no-stop-at-failure"
         @ tool_option opts.bench "--bench"
         @ tool_option opts.fail_on_assertion_only "--fail-on-assertion-only"
-        @ (if opts.output_workspace then [ "--workpace"; output_dir ] else [])
+        @ (if opts.output_workspace then [ "--workspace"; output_dir ] else [])
         @ tool_option
             (opts.mode = "c" || opts.mode = "c++")
             (Fmt.str "-O%d" opts.optimisation_level)
