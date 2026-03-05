@@ -208,24 +208,37 @@ let execvp ~output_dir tool file timeout =
   let tool_option cond value = if cond then [ value ] else [] in
   let bin, args =
     match tool with
-    | Owi opts ->
+    | Owi
+        { mode
+        ; optimisation_level
+        ; workers
+        ; solver
+        ; exploration_strategy
+        ; fail_on_assertion_only
+        ; no_stop_at_failure
+        ; entry_point
+        ; bench
+        ; output_workspace
+        } ->
       ( path_to_tool
       , [ path_to_tool
-        ; opts.mode
+        ; mode
         ; "--unsafe"
-        ; Fmt.str "-w%d" opts.workers
+        ; Fmt.str "-w%d" workers
         ; "--exploration"
-        ; opts.exploration_strategy
+        ; exploration_strategy
+        ; "--solver"
+        ; Fmt.str "%a" Smtml.Solver_type.pp solver
         ; "-q"
         ]
-        @ tool_option opts.no_stop_at_failure "--no-stop-at-failure"
-        @ tool_option opts.bench "--bench"
-        @ tool_option opts.fail_on_assertion_only "--fail-on-assertion-only"
-        @ (if opts.output_workspace then [ "--workspace"; output_dir ] else [])
+        @ tool_option no_stop_at_failure "--no-stop-at-failure"
+        @ tool_option bench "--bench"
+        @ tool_option fail_on_assertion_only "--fail-on-assertion-only"
+        @ (if output_workspace then [ "--workspace"; output_dir ] else [])
         @ tool_option
-            (opts.mode = "c" || opts.mode = "c++")
-            (Fmt.str "-O%d" opts.optimisation_level)
-        @ ( match opts.entry_point with
+            (mode = "c" || mode = "c++")
+            (Fmt.str "-O%d" optimisation_level)
+        @ ( match entry_point with
           | Some ep -> [ "--entry-point"; ep ]
           | None -> [] )
         @ [ file ] )
