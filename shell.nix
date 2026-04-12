@@ -4,14 +4,14 @@ let
 in
 
 let
-  owiSubShell = import ./tools/owi/shell.nix {} ;
+  # owiSubShell = import ./tools/owi/shell.nix {} ;
   # soteriaSubShell = import ./tools/soteria/shell.nix ;
 in
 
 pkgs.mkShell {
   dontDetectOcamlConflicts = true;
   inputsFrom = [
-    owiSubShell
+    # owiSubShell
     # soteriaSubShell
   ];
   nativeBuildInputs = with ocamlPackages; [
@@ -31,6 +31,7 @@ pkgs.mkShell {
     gnuplot
     logs
     lwt
+    owi
     processor
     rusage
     smtml
