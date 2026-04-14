@@ -8,11 +8,11 @@ let existing_file_conv =
     match Fpath.of_string s with
     | Error _ as e -> e
     | Ok path -> begin
-      match Bos.OS.File.exists path with
-      | Ok true -> Ok path
-      | Ok false -> Fmt.error_msg "no file '%a'" Fpath.pp path
-      | Error _ as e -> e
-    end
+        match Bos.OS.File.exists path with
+        | Ok true -> Ok path
+        | Ok false -> Fmt.error_msg "no file '%a'" Fpath.pp path
+        | Error _ as e -> e
+      end
   in
   Arg.conv (parse, Fpath.pp)
 
@@ -71,7 +71,7 @@ let owi =
       let pp_bold_solver fmt ty =
         Fmt.pf fmt "$(b,%a)" Smtml.Solver_type.pp ty
       in
-      let supported_solvers = Smtml.Solver_dispatcher.supported_solvers in
+      let supported_solvers = Smtml.Solver_dispatcher.available in
       Fmt.str
         "SMT solver to use. $(i,%s) must be one of the %d available solvers: %a"
         docv

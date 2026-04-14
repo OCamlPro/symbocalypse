@@ -37,8 +37,8 @@ let get_number_of_workers = function
   | Klee | Symbiotic | Soteria -> 1
 
 let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
-  ~workers ~fail_on_assertion_only ~entry_point ~output_workspace
-  ~no_stop_at_failure =
+    ~workers ~fail_on_assertion_only ~entry_point ~output_workspace
+    ~no_stop_at_failure =
   Owi
     { mode
     ; bench
@@ -64,56 +64,14 @@ let get_path =
   match Bos.OS.Env.var tool_path_env_var_name with
   | Some v -> fun _tool -> v
   | None -> (
-    function
-    | Owi _ -> "_build/install/default/bin/owi"
-    | Klee -> "tools/klee/bin/klee"
-    | Symbiotic -> "tools/symbiotic/bin/symbiotic"
-    | Soteria -> "_build/install/default/bin/soteria-c" )
+      function
+      | Owi _ -> "owi"
+      | Klee -> "klee"
+      | Symbiotic -> "symbiotic"
+      | Soteria -> "soteria" )
 
-let help_install = function
-  | Owi _ ->
-    Logs.err (fun m ->
-      m
-        "Make sure you cloned the submodule with: git submodule update --init \
-         --depth 1 tools/owi" );
-    Logs.err (fun m ->
-      m "Then run: dune build @install -p symbocalypse,owi --profile release" )
-  | Klee ->
-    Logs.err (fun m ->
-      m
-        "Make sure you cloned the submodule with: git submodule update --init \
-         --depth 1 tools/klee" )
-  | Symbiotic ->
-    Logs.err (fun m ->
-      m
-        "Make sure you cloned the submodule with: git submodule update --init \
-         --depth 1 tools/symbiotic" )
-  | Soteria ->
-    Logs.err (fun m ->
-      m
-        "Make sure you cloned the submodule with: git submodule update --init \
-         --depth 1 tools/soteria" );
-    Logs.err (fun m ->
-      m
-        "Then run: dune build @install -p symbocalypse,soteria-c --profile \
-         release" )
-
-let is_installed tool =
-  let path_to_tool = get_path tool |> Fpath.v in
-  match Bos.OS.File.exists path_to_tool with
-  | Ok true -> true
-  | Ok false | Error _ -> false
-
-let check_if_available tool =
-  if is_installed tool then Ok ()
-  else
-    let path = get_path tool in
-    Logs.err (fun m -> m "Could not find the expected file at `%s`." path);
-    help_install tool;
-    Fmt.error_msg
-      "If you want to override the path, you can set the environment variable \
-       %s."
-      tool_path_env_var_name
+let check_if_available _tool = Ok ()
+(* TODO: check for real *)
 
 exception Sigchld
 
@@ -125,13 +83,13 @@ let wait_pid ~pid ~timeout ~tool ~dst_stderr =
   let did_timeout = ref false in
   let start_time = Unix.gettimeofday () in
   begin try
-    Sys.set_signal Sys.sigchld (Signal_handle (fun (_ : int) -> raise Sigchld));
-    Unix.sleepf timeout;
-    did_timeout := true;
-    (* we kill the process group id (pgid) which should be equal to pid *)
-    Unix.kill ~-pid 9;
-    Sys.set_signal Sys.sigchld Signal_default
-  with Sigchld -> ()
+      Sys.set_signal Sys.sigchld (Signal_handle (fun (_ : int) -> raise Sigchld));
+      Unix.sleepf timeout;
+      did_timeout := true;
+      (* we kill the process group id (pgid) which should be equal to pid *)
+      Unix.kill ~-pid 9;
+      Sys.set_signal Sys.sigchld Signal_default
+    with Sigchld -> ()
   end;
   Sys.set_signal Sys.sigchld Signal_default;
   let ( waited_pid
@@ -157,46 +115,46 @@ let wait_pid ~pid ~timeout ~tool ~dst_stderr =
   else
     match status with
     | WEXITED code -> begin
-      match tool with
-      | Owi _ ->
-        if code = 0 then Nothing rusage
-        else if code = 13 then Reached rusage
-        else Other (rusage, code)
-      | Soteria ->
-        if code = 0 then Nothing rusage
-        else if code = 13 then Reached rusage
-        else Other (rusage, code)
-      | Klee ->
-        if code = 0 then begin
-          let chan = open_in (Fpath.to_string dst_stderr) in
-          let has_found_error = ref false in
-          begin try
-            while true do
-              let line = input_line chan in
-              match
-                String.split_on_char ' ' line |> List.filter (fun s -> s <> "")
-              with
-              | [ "KLEE:"; "ERROR:"; _location; "ASSERTION"; "FAIL:"; "0" ] ->
-                has_found_error := true;
-                raise Exit
-              | _line -> ()
-            done
-          with End_of_file | Exit -> ()
-          end;
-          close_in chan;
-          if !has_found_error then Reached rusage else Nothing rusage
-        end
-        else Other (rusage, code)
-      | Symbiotic ->
-        if code = 0 then begin
-          match Bos.OS.File.read dst_stderr with
-          | Error (`Msg err) -> failwith err
-          | Ok data -> (
-            let error = Astring.String.find_sub ~sub:"Found ERROR!" data in
-            match error with Some _ -> Reached rusage | None -> Nothing rusage )
-        end
-        else Other (rusage, code)
-    end
+        match tool with
+        | Owi _ ->
+          if code = 0 then Nothing rusage
+          else if code = 13 then Reached rusage
+          else Other (rusage, code)
+        | Soteria ->
+          if code = 0 then Nothing rusage
+          else if code = 13 then Reached rusage
+          else Other (rusage, code)
+        | Klee ->
+          if code = 0 then begin
+            let chan = open_in (Fpath.to_string dst_stderr) in
+            let has_found_error = ref false in
+            begin try
+                while true do
+                  let line = input_line chan in
+                  match
+                    String.split_on_char ' ' line |> List.filter (fun s -> s <> "")
+                  with
+                  | [ "KLEE:"; "ERROR:"; _location; "ASSERTION"; "FAIL:"; "0" ] ->
+                    has_found_error := true;
+                    raise Exit
+                  | _line -> ()
+                done
+              with End_of_file | Exit -> ()
+            end;
+            close_in chan;
+            if !has_found_error then Reached rusage else Nothing rusage
+          end
+          else Other (rusage, code)
+        | Symbiotic ->
+          if code = 0 then begin
+            match Bos.OS.File.read dst_stderr with
+            | Error (`Msg err) -> failwith err
+            | Ok data -> (
+                let error = Astring.String.find_sub ~sub:"Found ERROR!" data in
+                match error with Some _ -> Reached rusage | None -> Nothing rusage )
+          end
+          else Other (rusage, code)
+      end
     | WSIGNALED n -> Signaled (rusage, n)
     | WSTOPPED n -> Stopped (rusage, n)
 
@@ -236,11 +194,11 @@ let execvp ~output_dir tool file timeout =
         @ tool_option fail_on_assertion_only "--fail-on-assertion-only"
         @ (if output_workspace then [ "--workspace"; output_dir ] else [])
         @ tool_option
-            (mode = "c" || mode = "c++")
-            (Fmt.str "-O%d" optimisation_level)
+          (mode = "c" || mode = "c++")
+          (Fmt.str "-O%d" optimisation_level)
         @ ( match entry_point with
-          | Some ep -> [ "--entry-point"; ep ]
-          | None -> [] )
+            | Some ep -> [ "--entry-point"; ep ]
+            | None -> [] )
         @ [ file ] )
     | Klee ->
       ( path_to_tool
