@@ -1,1 +1,1 @@
-val run : Tool.t -> float -> int -> (unit, Rresult.R.msg) result
+val run : Tool.t -> float -> int -> (unit, [ `Msg of string ]) result
