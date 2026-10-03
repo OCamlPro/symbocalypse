@@ -12,9 +12,6 @@
          owi [OPTION]… [timeout]
              Owi engine
   
-         soteria [--max-tests=VAL] [OPTION]… [timeout]
-             Soteria engine
-  
          symbiotic [--max-tests=VAL] [OPTION]… [timeout]
              Symbiotic engine
   
