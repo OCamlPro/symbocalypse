@@ -223,6 +223,7 @@ let execvp ~output_dir tool file timeout =
       ( path_to_tool
       , [ path_to_tool
         ; mode
+        ; "sym"
         ; "--unsafe"
         ; Fmt.str "-w%d" workers
         ; "--exploration"
