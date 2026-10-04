@@ -173,19 +173,6 @@ let testcomp_owi_cmd =
        ~output_workspace:true ~no_stop_at_failure:false )
     timeout max_tests
 
-(* symbocalypse testcomp soteria *)
-let testcomp_soteria_info =
-  let doc = "Soteria engine" in
-  let man = shared_man in
-  Cmd.info "soteria" ~version ~doc ~sdocs ~man
-
-let testcomp_soteria_cmd =
-  let+ () = setup_log
-  and+ timeout
-  and+ max_tests in
-  let tool = Tool.mk_soteria () in
-  Cmd_testcomp.run tool timeout max_tests
-
 (* symbocalypse testcomp symbiotic *)
 let testcomp_symbiotic_info =
   let doc = "Symbiotic engine" in
@@ -209,7 +196,6 @@ let testcomp_cmd =
   Cmd.group testcomp_info
     [ Cmd.v testcomp_klee_info testcomp_klee_cmd
     ; Cmd.v testcomp_owi_info testcomp_owi_cmd
-    ; Cmd.v testcomp_soteria_info testcomp_soteria_cmd
     ; Cmd.v testcomp_symbiotic_info testcomp_symbiotic_cmd
     ]
 
@@ -225,7 +211,7 @@ let wasm_btree_owi_cmd =
   and+ max_tests
   and+ owi in
   Cmd_wasm_btree.run
-    (owi ~fail_on_assertion_only:false ~entry_point:None ~mode:"sym"
+    (owi ~fail_on_assertion_only:false ~entry_point:None ~mode:"wasm"
        ~output_workspace:false ~no_stop_at_failure:true )
     timeout max_tests
 

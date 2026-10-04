@@ -15,13 +15,11 @@ type t =
       }
   | Klee
   | Symbiotic
-  | Soteria
 
 let to_short_name = function
   | Owi _ -> "owi"
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
-  | Soteria -> "soteria"
 
 let to_reference_name = function
   | Owi { mode; workers; optimisation_level; solver; exploration_strategy; _ }
@@ -30,11 +28,10 @@ let to_reference_name = function
       Smtml.Solver_type.pp solver exploration_strategy
   | Klee -> "klee"
   | Symbiotic -> "symbiotic"
-  | Soteria -> "soteria"
 
 let get_number_of_workers = function
   | Owi { workers; _ } -> workers
-  | Klee | Symbiotic | Soteria -> 1
+  | Klee | Symbiotic -> 1
 
 let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
   ~workers ~fail_on_assertion_only ~entry_point ~output_workspace
@@ -54,8 +51,6 @@ let mk_owi ~mode ~bench ~exploration_strategy ~optimisation_level ~solver
 
 let mk_klee () = Klee
 
-let mk_soteria () = Soteria
-
 let mk_symbiotic () = Symbiotic
 
 let tool_path_env_var_name = "S_TOOL_PATH"
@@ -67,8 +62,7 @@ let get_path =
     function
     | Owi _ -> "_build/install/default/bin/owi"
     | Klee -> "tools/klee/bin/klee"
-    | Symbiotic -> "tools/symbiotic/bin/symbiotic"
-    | Soteria -> "_build/install/default/bin/soteria-c" )
+    | Symbiotic -> "tools/symbiotic/bin/symbiotic" )
 
 let help_install = function
   | Owi _ ->
@@ -88,15 +82,6 @@ let help_install = function
       m
         "Make sure you cloned the submodule with: git submodule update --init \
          --depth 1 tools/symbiotic" )
-  | Soteria ->
-    Logs.err (fun m ->
-      m
-        "Make sure you cloned the submodule with: git submodule update --init \
-         --depth 1 tools/soteria" );
-    Logs.err (fun m ->
-      m
-        "Then run: dune build @install -p symbocalypse,soteria-c --profile \
-         release" )
 
 let is_installed tool =
   let path_to_tool = get_path tool |> Fpath.v in
@@ -162,10 +147,6 @@ let wait_pid ~pid ~timeout ~tool ~dst_stderr =
         if code = 0 then Nothing rusage
         else if code = 13 then Reached rusage
         else Other (rusage, code)
-      | Soteria ->
-        if code = 0 then Nothing rusage
-        else if code = 13 then Reached rusage
-        else Other (rusage, code)
       | Klee ->
         if code = 0 then begin
           let chan = open_in (Fpath.to_string dst_stderr) in
@@ -223,6 +204,7 @@ let execvp ~output_dir tool file timeout =
       ( path_to_tool
       , [ path_to_tool
         ; mode
+        ; "sym"
         ; "--unsafe"
         ; Fmt.str "-w%d" workers
         ; "--exploration"
@@ -259,19 +241,6 @@ let execvp ~output_dir tool file timeout =
         ; Fmt.str "--timeout=%s" timeout
         ; "--prp=testcomp/sv-benchmarks/c/properties/coverage-error-call.prp"
         ; file
-        ] )
-    | Soteria ->
-      ( path_to_tool
-      , [ path_to_tool
-        ; "exec"
-        ; file
-        ; "--testcomp"
-        ; "--step-fuel"
-        ; "1500"
-        ; "--branch-fuel"
-        ; "infinite"
-        ; "--alloc-cannot-fail"
-        ; "--ignore-ub"
         ] )
   in
   Logs.app (fun m -> m "  Executing: %s %a" bin Fmt.(Dump.list string) args);

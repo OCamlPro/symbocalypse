@@ -19,11 +19,10 @@ $ git submodule update --init --depth 1
 
 ## Running Test-Comp
 
-If you intend to run `owi` or `soteria`, you should make sure they are built with symbocalypse:
+If you intend to run `owi`, you should make sure it is built with symbocalypse:
 
 ```shell-session
-$ dune build @install --profile release -p symbocalypse,owi # for Owi
-$ dune build @install --profile release -p symbocalypse,owi # for Soteria
+$ dune build @install --profile release -p symbocalypse,owi
 ```
 
 Then, you can run Test-Comp with the tool of your choice. You could for instance run with a five seconds timeout:

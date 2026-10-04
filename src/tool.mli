@@ -23,8 +23,6 @@ val mk_owi :
 
 val mk_klee : unit -> t
 
-val mk_soteria : unit -> t
-
 val mk_symbiotic : unit -> t
 
 val check_if_available : t -> (unit, [ `Msg of string ]) Result.t

@@ -5,14 +5,12 @@ in
 
 let
   owiSubShell = import ./tools/owi/shell.nix {} ;
-  # soteriaSubShell = import ./tools/soteria/shell.nix ;
 in
 
 pkgs.mkShell {
   dontDetectOcamlConflicts = true;
   inputsFrom = [
     owiSubShell
-    # soteriaSubShell
   ];
   nativeBuildInputs = with ocamlPackages; [
     dune_3
@@ -22,7 +20,6 @@ pkgs.mkShell {
     ocamlformat
     ocp-browser
     pkgs.python3 # KLEE
-    pkgs.z3 # soteria-c
   ];
   propagatedBuildInputs = with ocamlPackages; [
     cmdliner
